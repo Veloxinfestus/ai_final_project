@@ -41,3 +41,26 @@ Sunday:
   History Essay: 4.0h
 
 ## Future Implementation
+### User Input
+- Enter tasks, due dates, and hours needed  
+- Enter daily availability  
+
+### Optimization / Machine Learning
+- Use optimization algorithms to allocate study time  
+- Predict study hours or productivity patterns  
+
+### GUI or Web App
+- Desktop interface (Tkinter)  
+- or Web interface (Flask/Streamlit)  
+
+### Testing
+- Unit tests for scheduling logic  
+- Tests for optimization components  
+
+### Config File Support
+- Load tasks and hours from JSON  
+
+### Improved Scheduling Logic
+- Prioritize tasks by due date  
+- Spread hours more intelligently  
+- Handle overdue tasks
