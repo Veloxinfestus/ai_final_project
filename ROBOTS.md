@@ -2,7 +2,7 @@
 This file defines the structure and contribution rules for AI agents assisting with the Study Planner project.
 
 ## Current File Structure
-- `study_planner.py` — hard-coded, rule-based scheduling prototype.
+- `study_planner.py` — hard-coded scheduling prototype.
 - `README.md` — human-readable project overview.
 - `ROBOTS.md` — instructions for AI agents.
 - `example_config.json` — example of the data format (will be supported in the future).
