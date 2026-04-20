@@ -15,21 +15,3 @@ This file defines the structure and contribution rules for AI agents assisting w
 5. Do not introduce external dependencies without human approval.
 6. Maintain compatibility with Python’s standard library unless told otherwise.
 7. Follow the existing structure and naming conventions.
-
-## Future Planned Components
-AI agents may create these files in later pull requests:
-- `src/optimizer.py` — optimization algorithm for scheduling.
-- `src/input_handler.py` — user input or config file parsing.
-- `src/ui.py` — desktop or web interface.
-- `tests/test_planner.py` — tests for scheduling/optimization logic.
-
-## Contribution Workflow for AI Agents
-1. Read this file before generating code.
-2. Follow the current architecture.
-3. Propose new modules when adding major features.
-4. Ensure all new code is documented and testable.
-5. Maintain separation between:
-   - scheduling logic
-   - optimization logic
-   - user interface
-   - data handling
