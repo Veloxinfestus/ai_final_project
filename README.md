@@ -50,8 +50,8 @@ Sunday:
 - Predict study hours or productivity patterns  
 
 ### GUI or Web App
-- Desktop interface (Tkinter)  
-- or Web interface (Flask/Streamlit)  
+- Desktop interface (Tkinter - python desktop builder) 
+- or Web interface (Flask)  
 
 ### Testing
 - Unit tests for scheduling logic  
