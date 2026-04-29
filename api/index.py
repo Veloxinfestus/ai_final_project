@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 from datetime import date
+from typing import Any, Dict, List
 
 from flask import Flask, jsonify, render_template_string, request
 
@@ -277,25 +278,51 @@ def health():
     return jsonify({"status": "healthy"})
 
 
+def _bad_request(message: str):
+    return jsonify({"error": message}), 400
+
+
+def _parse_plan_payload(payload: Dict[str, Any]) -> tuple[List[Task], Dict[str, float], date | None]:
+    week_of_raw = payload.get("week_of")
+    week_of = date.fromisoformat(week_of_raw) if week_of_raw else None
+
+    daily_hours_raw = payload.get("daily_study_hours")
+    if not isinstance(daily_hours_raw, dict):
+        raise ValueError("'daily_study_hours' must be an object keyed by weekday.")
+
+    tasks_payload = payload.get("tasks")
+    if not isinstance(tasks_payload, list) or not tasks_payload:
+        raise ValueError("'tasks' must be a non-empty list.")
+
+    tasks: List[Task] = []
+    for item in tasks_payload:
+        if not isinstance(item, dict):
+            raise ValueError("Each task must be an object.")
+        name = item.get("name")
+        hours_needed = item.get("hours_needed")
+        if name is None or hours_needed is None:
+            raise ValueError("Each task must include 'name' and 'hours_needed'.")
+        tasks.append(
+            Task(
+                name=str(name),
+                hours_needed=float(hours_needed),
+                due=date.fromisoformat(item["due"]) if item.get("due") else None,
+            )
+        )
+
+    return tasks, daily_hours_raw, week_of
+
+
 @app.post("/api/plan")
 def plan():
     payload = request.get_json(silent=True) or {}
-    week_of_raw = payload.get("week_of")
-    week_of = date.fromisoformat(week_of_raw) if week_of_raw else None
-    daily_hours = payload.get("daily_study_hours", {})
-    tasks_payload = payload.get("tasks", [])
+    try:
+        tasks, daily_hours, week_of = _parse_plan_payload(payload)
+        result = build_plan(tasks=tasks, daily_hours=daily_hours, week_of=week_of)
+    except (ValueError, TypeError) as exc:
+        return _bad_request(str(exc))
 
-    tasks = [
-        Task(
-            name=item["name"],
-            hours_needed=float(item["hours_needed"]),
-            due=date.fromisoformat(item["due"]) if item.get("due") else None,
-        )
-        for item in tasks_payload
-    ]
-
-    result = build_plan(tasks=tasks, daily_hours=daily_hours, week_of=week_of)
-    return jsonify(result)
+    return jsonify(result), 200
 
 
 if __name__ == "__main__":

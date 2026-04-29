@@ -28,14 +28,40 @@ def _task_sort_key(task: Task, week_start: date) -> Tuple[int, float]:
     return (due_offset, -task.hours_needed)
 
 
+def _normalize_daily_hours(daily_hours: Dict[str, float]) -> Dict[str, float]:
+    normalized: Dict[str, float] = {}
+    for day_name in WEEKDAYS:
+        raw_value = daily_hours.get(day_name, 0.0)
+        value = float(raw_value)
+        if value < 0:
+            raise ValueError(f"Daily study hours cannot be negative for {day_name}.")
+        normalized[day_name] = value
+    return normalized
+
+
+def _validate_tasks(tasks: List[Task]) -> None:
+    seen_names = set()
+    for task in tasks:
+        if not task.name or not task.name.strip():
+            raise ValueError("Task names must be non-empty.")
+        if task.hours_needed <= 0:
+            raise ValueError(f"Task '{task.name}' must have positive hours_needed.")
+        if task.name in seen_names:
+            raise ValueError(f"Duplicate task name detected: '{task.name}'.")
+        seen_names.add(task.name)
+
+
 def build_plan(tasks: Iterable[Task], daily_hours: Dict[str, float], week_of: date | None = None):
     effective_week = week_of or start_of_week(date.today())
-    ordered_tasks = sorted(list(tasks), key=lambda t: _task_sort_key(t, effective_week))
+    task_list = list(tasks)
+    _validate_tasks(task_list)
+    normalized_daily_hours = _normalize_daily_hours(daily_hours)
+    ordered_tasks = sorted(task_list, key=lambda t: _task_sort_key(t, effective_week))
     remaining = {task.name: float(task.hours_needed) for task in ordered_tasks}
     plan: Dict[str, Dict[str, float]] = {day: {} for day in WEEKDAYS}
 
     for day_idx, day_name in enumerate(WEEKDAYS):
-        available = max(0.0, float(daily_hours.get(day_name, 0.0)))
+        available = normalized_daily_hours[day_name]
         if available <= 0:
             continue
 
@@ -61,10 +87,22 @@ def build_plan(tasks: Iterable[Task], daily_hours: Dict[str, float], week_of: da
             remaining[task.name] = round(remaining[task.name] - take, 2)
             available = round(available - take, 2)
 
+    total_requested_hours = round(sum(task.hours_needed for task in ordered_tasks), 2)
+    total_available_hours = round(sum(normalized_daily_hours.values()), 2)
+    total_unallocated = round(sum(hours for hours in remaining.values() if hours > 0), 2)
+    total_allocated = round(total_requested_hours - total_unallocated, 2)
+    allocation_rate = 0.0 if total_requested_hours == 0 else round(total_allocated / total_requested_hours, 4)
+
     return {
         "week_of": effective_week.isoformat(),
         "plan": plan,
         "unallocated_hours": {name: hours for name, hours in remaining.items() if hours > 0},
+        "metrics": {
+            "total_requested_hours": total_requested_hours,
+            "total_available_hours": total_available_hours,
+            "total_allocated_hours": total_allocated,
+            "allocation_rate": allocation_rate,
+        },
     }
 
 

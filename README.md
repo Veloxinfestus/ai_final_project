@@ -1,37 +1,44 @@
-# Study Planner — Vercel-Ready API
+# Study Planner - AI Final Project
 
 ## Project Purpose
-This project generates a weekly study schedule from tasks, due dates, and daily availability. It is now finalized as a Python serverless API that deploys directly on Vercel.
+This project is a Python web app that helps student success by generating a weekly study schedule from tasks, due dates, and daily availability.  
+It frames planning as an optimization problem: maximize on-time completion for urgent tasks while respecting a fixed weekly hour budget.
 
-## What Is Included
-- Priority-aware study planning (`study_planner.py`)
-- Serverless API entrypoint (`api/index.py`)
-- Vercel config (`vercel.json`)
-- Python dependency file (`requirements.txt`)
+## Why This Aligns With Requirements
+- **Language requirement:** implemented in Python.
+- **Agentic engineering:** project structure includes `ROBOTS.md` to guide AI agents.
+- **Robust testing:** includes planner and API tests in `tests/`.
+- **GitHub hosted:** repository is available on GitHub.
+- **Standalone web app:** Flask app is deployable to Vercel and supports a public URL.
+- **Human + AI docs:** both `README.md` and `ROBOTS.md` are maintained.
 
-## Local Run
+## Repository Layout
+- `study_planner.py`: core scheduling and optimization logic.
+- `api/index.py`: Flask API and lightweight browser UI.
+- `tests/test_study_planner.py`: unit tests for planner behavior.
+- `tests/test_api.py`: endpoint and payload-validation tests.
+- `vercel.json`: Vercel routing for serverless deployment.
+- `requirements.txt`: Python dependencies.
+
+## Local Development
 1. Install Python 3.11+.
 2. Install dependencies:
    - `pip install -r requirements.txt`
-3. Run the API locally:
+3. Run the app:
    - `python api/index.py`
-4. Verify endpoints:
-   - `GET http://127.0.0.1:5000/api/health`
-   - `POST http://127.0.0.1:5000/api/plan`
+4. Open:
+   - `http://127.0.0.1:5000/` (UI)
+   - `http://127.0.0.1:5000/api/health`
 
-## Deploy To Vercel
-1. Push this repo to GitHub.
-2. In Vercel, click **Add New Project** and import this repository.
-3. Keep framework as **Other** (Vercel uses `vercel.json` + `@vercel/python`).
-4. Deploy.
+## Test Commands
+- Run all tests:
+  - `python -m unittest discover -s tests -p "test_*.py" -v`
 
-After deployment, call:
-- `GET /api/health`
-- `POST /api/plan`
+## API Endpoints
+- `GET /api/health`: health check.
+- `POST /api/plan`: generate a plan from tasks and daily hours.
 
-## API Request Example
-`POST /api/plan`
-
+### Example Request
 ```json
 {
   "week_of": "2026-04-20",
@@ -46,28 +53,29 @@ After deployment, call:
   },
   "tasks": [
     { "name": "Biology lab report", "due": "2026-04-23", "hours_needed": 5 },
-    { "name": "Statistics problem set", "due": "2026-04-25", "hours_needed": 4 },
-    { "name": "History reading quiz", "due": "2026-04-27", "hours_needed": 2 },
-    { "name": "Physics midterm", "due": "2026-05-02", "hours_needed": 12 }
+    { "name": "Statistics problem set", "due": "2026-04-25", "hours_needed": 4 }
   ]
 }
 ```
 
-## API Response Shape
+### Example Response
 ```json
 {
   "week_of": "2026-04-20",
   "plan": {
-    "Monday": { "Biology lab report": 2.0 },
-    "Tuesday": { "Biology lab report": 2.0 },
-    "Wednesday": { "Biology lab report": 1.0, "Statistics problem set": 0.5 },
-    "Thursday": { "Statistics problem set": 2.0 },
-    "Friday": { "Statistics problem set": 1.0 },
-    "Saturday": { "History reading quiz": 2.0, "Physics midterm": 2.0 },
-    "Sunday": { "Physics midterm": 4.0 }
+    "Monday": { "Biology lab report": 2.0 }
   },
-  "unallocated_hours": {
-    "Physics midterm": 6.0
+  "unallocated_hours": {},
+  "metrics": {
+    "total_requested_hours": 9.0,
+    "total_available_hours": 16.5,
+    "total_allocated_hours": 9.0,
+    "allocation_rate": 1.0
   }
 }
 ```
+
+## Deploy To Vercel
+1. Push this repo to GitHub.
+2. Import the repo in Vercel as framework **Other**.
+3. Deploy using existing `vercel.json`.
