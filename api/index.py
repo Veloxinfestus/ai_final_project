@@ -72,6 +72,16 @@ def home():
       padding: 18px 20px;
       margin-bottom: 16px;
       background: rgba(17, 12, 40, 0.65);
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::after {
+      content: "✨   🪩   ✨   🧠   ✨   📚   ✨";
+      position: absolute;
+      right: 12px;
+      top: 8px;
+      font-size: 18px;
+      opacity: 0.55;
     }
     h1 {
       margin: 0 0 6px;
@@ -87,6 +97,19 @@ def home():
       padding: 16px;
       box-shadow: 0 10px 28px rgba(0, 0, 0, 0.25);
       backdrop-filter: blur(2px);
+      position: relative;
+      overflow: hidden;
+    }
+    .card::before {
+      content: "";
+      position: absolute;
+      width: 190px;
+      height: 190px;
+      border-radius: 999px;
+      background: radial-gradient(circle, rgba(255, 209, 102, 0.18), transparent 70%);
+      right: -88px;
+      top: -90px;
+      pointer-events: none;
     }
     .section-title { margin: 0 0 8px; font-size: 1.06rem; }
     .muted { color: var(--muted); font-size: 0.9rem; }
@@ -150,6 +173,43 @@ def home():
       color: var(--accent);
       font-size: 12px;
     }
+    .chaos-switch {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px dashed rgba(255, 209, 102, 0.6);
+      background: rgba(255, 209, 102, 0.08);
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 12px;
+      color: #ffe7a7;
+      margin-left: auto;
+    }
+    .chaos-switch input { width: auto; accent-color: #ff4dcc; }
+    body.party-mode {
+      animation: hueSpin 12s linear infinite;
+    }
+    body.party-mode .hero {
+      animation: wiggle 1.4s ease-in-out infinite;
+    }
+    body.party-mode .card:nth-child(odd) {
+      animation: bobble 2.6s ease-in-out infinite;
+    }
+    body.party-mode .card:nth-child(even) {
+      animation: bobble 2.6s ease-in-out infinite 0.7s;
+    }
+    @keyframes hueSpin {
+      0% { filter: hue-rotate(0deg); }
+      100% { filter: hue-rotate(360deg); }
+    }
+    @keyframes wiggle {
+      0%, 100% { transform: rotate(0deg); }
+      50% { transform: rotate(0.6deg); }
+    }
+    @keyframes bobble {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-2px); }
+    }
     .result-meta { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 10px 0 12px; }
     .metric {
       background: rgba(14, 9, 33, 0.65);
@@ -204,6 +264,10 @@ def home():
         <div class="actions">
           <button type="button" id="run">Generate My Battle Plan</button>
           <button type="button" class="secondary" id="reset">Reset to Sample Data</button>
+          <label class="chaos-switch">
+            <input type="checkbox" id="partyMode" />
+            Maximum chaos mode
+          </label>
           <span class="status-pill" id="status">Ready to plan</span>
         </div>
       </section>
@@ -230,6 +294,29 @@ def home():
     const addTaskBtn = document.getElementById("addTask");
     const resetBtn = document.getElementById("reset");
     const planOutput = document.getElementById("planOutput");
+    const partyMode = document.getElementById("partyMode");
+    const successLines = [
+      "Plan generated. Time to academically speedrun.",
+      "Battle plan ready. Your deadlines are trembling.",
+      "Math completed. Brain activated. Let's go.",
+      "Schedule locked in. You are now 14% more wizard."
+    ];
+    const busyLines = [
+      "Crunching numbers...",
+      "Bribing the calendar goblins...",
+      "Negotiating peace between tasks and free time...",
+      "Summoning the productivity dragon..."
+    ];
+    const dayVibes = {
+      Monday: " Monday mission mode",
+      Tuesday: " Tuesday turbo",
+      Wednesday: " Midweek mayhem",
+      Thursday: " Thursday thunder",
+      Friday: " Friday finish-line energy",
+      Saturday: " Weekend grind (with snacks)",
+      Sunday: " Sunday reset vibes",
+    };
+    const randomFrom = (list) => list[Math.floor(Math.random() * list.length)];
 
     function setStatus(text, isError = false) {
       status.textContent = text;
@@ -272,6 +359,8 @@ def home():
       document.getElementById("mWeek").textContent = "-";
       document.getElementById("mSlots").textContent = "0";
       document.getElementById("mUnalloc").textContent = "0.0";
+      partyMode.checked = false;
+      document.body.classList.remove("party-mode");
     }
 
     function collectPayload() {
@@ -316,7 +405,7 @@ def home():
           const tasksHtml = entries.length
             ? entries.map(([task, hours]) => `<div>${task}: <strong>${Number(hours).toFixed(1)}h</strong></div>`).join("")
             : '<div class="empty">No study scheduled. Recharge your brain.</div>';
-          return `<div class="day-block"><div class="day-title">${day}</div>${tasksHtml}</div>`;
+          return `<div class="day-block"><div class="day-title">${dayVibes[day] || day}</div>${tasksHtml}</div>`;
         })
         .join("");
 
@@ -334,7 +423,7 @@ def home():
     }
 
     async function runPlan() {
-      setStatus("Crunching numbers...");
+      setStatus(randomFrom(busyLines));
       runBtn.disabled = true;
       try {
         const payload = collectPayload();
@@ -349,7 +438,7 @@ def home():
         const data = await res.json();
         if (!res.ok) throw new Error(data?.error || "Request failed.");
         renderPlan(data);
-        setStatus("Plan generated. Go crush it!");
+        setStatus(randomFrom(successLines));
       } catch (err) {
         setStatus("Please fix inputs and try again.", true);
         planOutput.innerHTML = `<div class="empty error">${String(err)}</div>`;
@@ -360,6 +449,14 @@ def home():
 
     addTaskBtn.addEventListener("click", () => makeTaskRow());
     resetBtn.addEventListener("click", loadDefaults);
+    partyMode.addEventListener("change", () => {
+      document.body.classList.toggle("party-mode", partyMode.checked);
+      if (partyMode.checked) {
+        setStatus("Chaos mode: ON. Hold onto your flashcards.");
+      } else {
+        setStatus("Chaos mode: OFF. Back to normal silliness.");
+      }
+    });
     runBtn.addEventListener("click", runPlan);
     loadDefaults();
   </script>
