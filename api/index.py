@@ -39,49 +39,136 @@ def home():
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Study Planner</title>
+  <title>Study Planner Party</title>
   <style>
-    :root { color-scheme: dark; }
+    :root {
+      color-scheme: dark;
+      --bg: #140f2b;
+      --card: rgba(33, 25, 66, 0.84);
+      --border: rgba(170, 123, 255, 0.45);
+      --text: #f8efff;
+      --muted: #ccb8e9;
+      --accent: #6cf8d7;
+      --accent2: #ffd166;
+      --danger: #ff7e7e;
+    }
+    * { box-sizing: border-box; }
     body {
-      margin: 0; font-family: Inter, system-ui, Arial, sans-serif;
-      background: #0b0f14; color: #e8edf2;
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Trebuchet MS", "Comic Sans MS", Inter, system-ui, Arial, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 12% 10%, rgba(255, 94, 196, 0.35), transparent 30%),
+        radial-gradient(circle at 88% 8%, rgba(108, 248, 215, 0.35), transparent 26%),
+        radial-gradient(circle at 50% 100%, rgba(255, 209, 102, 0.18), transparent 30%),
+        linear-gradient(155deg, #1a1238 0%, #140f2b 40%, #1e0e2f 100%);
+      background-attachment: fixed;
     }
-    .wrap { max-width: 1120px; margin: 0 auto; padding: 24px; }
+    .wrap { max-width: 1180px; margin: 0 auto; padding: 28px 20px 36px; }
+    .hero {
+      border: 2px dashed rgba(255, 209, 102, 0.75);
+      border-radius: 20px;
+      padding: 18px 20px;
+      margin-bottom: 16px;
+      background: rgba(17, 12, 40, 0.65);
+    }
+    h1 {
+      margin: 0 0 6px;
+      font-size: clamp(1.8rem, 2.6vw, 2.7rem);
+      letter-spacing: 0.4px;
+    }
+    .subtitle { margin: 0; color: var(--muted); font-size: 0.98rem; }
+    .layout { display: grid; gap: 16px; grid-template-columns: minmax(0, 1.22fr) minmax(0, 1fr); }
     .card {
-      background: #111923; border: 1px solid #233044; border-radius: 12px; padding: 16px;
-      box-shadow: 0 6px 24px rgba(0,0,0,.25);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 16px;
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.25);
+      backdrop-filter: blur(2px);
     }
-    h1 { margin: 0 0 12px; font-size: 30px; }
-    p { margin: 0 0 12px; color: #b8c4d3; }
-    .layout { display: grid; grid-template-columns: 1.2fr 1fr; gap: 16px; }
-    .section-title { margin: 0 0 10px; font-size: 16px; }
-    .inputs-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+    .section-title { margin: 0 0 8px; font-size: 1.06rem; }
+    .muted { color: var(--muted); font-size: 0.9rem; }
     .field { display: flex; flex-direction: column; gap: 6px; }
-    .field label { font-size: 13px; color: #9cb0c8; }
+    .field label { font-size: 0.85rem; color: #f0dcff; }
+    .inputs-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
     input, select {
-      width: 100%; box-sizing: border-box; border-radius: 9px;
-      border: 1px solid #2a3a53; background: #0a111a; color: #d4e0ef;
-      padding: 9px 10px; font-size: 13px;
+      width: 100%;
+      border: 1px solid rgba(229, 203, 255, 0.45);
+      border-radius: 11px;
+      background: rgba(15, 10, 37, 0.78);
+      color: #f8f1ff;
+      padding: 9px 10px;
+      font-size: 13px;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(108, 248, 215, 0.25);
+    }
+    .toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 10px 0 8px;
+      gap: 8px;
+      flex-wrap: wrap;
     }
     table { width: 100%; border-collapse: collapse; }
-    th, td { padding: 8px; border-bottom: 1px solid #223246; font-size: 13px; }
-    th { color: #9cb0c8; text-align: left; }
-    .actions { margin: 12px 0 0; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    th, td { padding: 8px; border-bottom: 1px solid rgba(205, 173, 247, 0.25); font-size: 13px; }
+    th { color: #f6de93; text-align: left; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; }
+    .actions { margin-top: 12px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
     button {
-      border: 0; border-radius: 10px; background: #25c284; color: #052113; font-weight: 700;
-      padding: 10px 14px; cursor: pointer;
+      border: 0;
+      border-radius: 11px;
+      padding: 10px 13px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      color: #22152d;
+      background: linear-gradient(135deg, #6cf8d7, #7efde2);
     }
-    button.secondary { background: #2f425c; color: #d4e0ef; }
-    button:hover { filter: brightness(1.08); }
-    button:disabled { opacity: .6; cursor: not-allowed; }
-    .status { color: #7ee6b7; font-size: 14px; }
-    .result-meta { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-bottom: 10px; }
-    .metric { background: #0a111a; border: 1px solid #223246; border-radius: 10px; padding: 10px; }
-    .metric .k { color: #90a4bd; font-size: 12px; margin-bottom: 4px; }
-    .metric .v { font-size: 18px; font-weight: 700; }
-    .day-block { border: 1px solid #223246; border-radius: 10px; padding: 10px; margin-bottom: 8px; background: #0a111a; }
-    .day-title { font-size: 14px; margin-bottom: 6px; color: #9cb0c8; }
-    .muted { color: #90a4bd; font-size: 12px; }
+    button:hover { filter: brightness(1.07); transform: translateY(-1px); }
+    button:disabled { opacity: 0.65; cursor: not-allowed; transform: none; }
+    button.secondary {
+      background: linear-gradient(135deg, #ffd166, #ffb703);
+      color: #3b2400;
+    }
+    button.ghost {
+      background: rgba(240, 216, 255, 0.13);
+      color: #f4e8ff;
+      border: 1px solid rgba(240, 216, 255, 0.38);
+    }
+    .status-pill {
+      margin-left: auto;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(108, 248, 215, 0.16);
+      border: 1px solid rgba(108, 248, 215, 0.55);
+      color: var(--accent);
+      font-size: 12px;
+    }
+    .result-meta { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 10px 0 12px; }
+    .metric {
+      background: rgba(14, 9, 33, 0.65);
+      border: 1px solid rgba(255, 209, 102, 0.35);
+      border-radius: 12px;
+      padding: 10px;
+    }
+    .metric .k { font-size: 12px; color: #f3dca0; }
+    .metric .v { font-size: 20px; font-weight: 800; }
+    .day-block {
+      border: 1px solid rgba(210, 183, 245, 0.3);
+      border-radius: 12px;
+      padding: 10px;
+      margin-bottom: 8px;
+      background: rgba(13, 8, 30, 0.58);
+    }
+    .day-title { font-size: 14px; margin-bottom: 6px; color: #f5e4ff; font-weight: 700; }
+    .empty { color: var(--muted); font-size: 13px; font-style: italic; }
+    .error { color: var(--danger); }
     @media (max-width: 980px) {
       .layout { grid-template-columns: 1fr; }
       .inputs-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -90,40 +177,45 @@ def home():
 </head>
 <body>
   <main class="wrap">
-    <h1>Study Planner</h1>
-    <p>Set your week, available hours, and tasks. Then generate a recommended plan.</p>
+    <header class="hero">
+      <h1>Study Planner Party <span aria-hidden="true">🎉📚</span></h1>
+      <p class="subtitle">Turn chaos into a game plan. Feed your tasks, press the magic button, and let this nerdy gremlin organize your week.</p>
+    </header>
     <div class="layout">
       <section class="card">
-        <h2 class="section-title">Inputs</h2>
-        <div class="field" style="max-width:240px; margin-bottom: 10px;">
-          <label for="weekOf">Week Of</label>
+        <h2 class="section-title">1) Set Up Your Week</h2>
+        <p class="muted">Enter your available hours and tasks. Keep it real; sleepy brains need breaks.</p>
+        <div class="field" style="max-width:240px; margin: 12px 0 10px;">
+          <label for="weekOf">Week Starting On</label>
           <input id="weekOf" type="date" />
         </div>
         <h3 class="section-title">Daily Study Hours</h3>
         <div class="inputs-grid" id="hoursGrid"></div>
-        <h3 class="section-title" style="margin-top:14px;">Tasks</h3>
+        <div class="toolbar">
+          <h3 class="section-title" style="margin:0;">Tasks</h3>
+          <button type="button" class="ghost" id="addTask">+ Add another mission</button>
+        </div>
         <table>
           <thead>
-            <tr><th>Task</th><th>Due Date</th><th>Hours</th><th></th></tr>
+            <tr><th>Task Name</th><th>Due Date</th><th>Hours Needed</th><th></th></tr>
           </thead>
           <tbody id="taskRows"></tbody>
         </table>
         <div class="actions">
-          <button type="button" class="secondary" id="addTask">+ Add Task</button>
-          <button type="button" id="run">Generate Plan</button>
-          <button type="button" class="secondary" id="reset">Reset Defaults</button>
-          <span class="status" id="status">Ready</span>
+          <button type="button" id="run">Generate My Battle Plan</button>
+          <button type="button" class="secondary" id="reset">Reset to Sample Data</button>
+          <span class="status-pill" id="status">Ready to plan</span>
         </div>
-      </div>
       </section>
       <section class="card">
-        <h2 class="section-title">Recommended Schedule</h2>
+        <h2 class="section-title">2) Your Recommended Schedule</h2>
+        <p class="muted">The planner prioritizes urgent work while trying to fit your weekly hour budget.</p>
         <div class="result-meta">
           <div class="metric"><div class="k">Week</div><div class="v" id="mWeek">-</div></div>
           <div class="metric"><div class="k">Task Slots</div><div class="v" id="mSlots">0</div></div>
           <div class="metric"><div class="k">Unallocated Hours</div><div class="v" id="mUnalloc">0.0</div></div>
         </div>
-        <div id="planOutput" class="muted">Generate a plan to see results.</div>
+        <div id="planOutput" class="empty">Generate a plan and your colorful schedule appears here.</div>
       </section>
     </div>
   </main>
@@ -138,6 +230,11 @@ def home():
     const addTaskBtn = document.getElementById("addTask");
     const resetBtn = document.getElementById("reset");
     const planOutput = document.getElementById("planOutput");
+
+    function setStatus(text, isError = false) {
+      status.textContent = text;
+      status.classList.toggle("error", isError);
+    }
 
     function renderHours(hours) {
       hoursGrid.innerHTML = "";
@@ -155,10 +252,10 @@ def home():
     function makeTaskRow(task = {name: "", due: "", hours_needed: 1}) {
       const tr = document.createElement("tr");
       tr.innerHTML = `
-        <td><input type="text" placeholder="Task name" value="${task.name ?? ""}" /></td>
+        <td><input type="text" placeholder="Example: Chemistry quiz prep" value="${task.name ?? ""}" /></td>
         <td><input type="date" value="${task.due ?? ""}" /></td>
         <td><input type="number" min="0.5" step="0.5" value="${task.hours_needed ?? 1}" /></td>
-        <td><button type="button" class="secondary removeBtn">Remove</button></td>
+        <td><button type="button" class="ghost removeBtn">Delete</button></td>
       `;
       tr.querySelector(".removeBtn").addEventListener("click", () => tr.remove());
       taskRows.appendChild(tr);
@@ -170,8 +267,8 @@ def home():
       taskRows.innerHTML = "";
       (starter.tasks || []).forEach((task) => makeTaskRow(task));
       if (!taskRows.children.length) makeTaskRow();
-      status.textContent = "Ready";
-      planOutput.innerHTML = '<div class="muted">Generate a plan to see results.</div>';
+      setStatus("Ready to plan");
+      planOutput.innerHTML = '<div class="empty">Generate a plan and your colorful schedule appears here.</div>';
       document.getElementById("mWeek").textContent = "-";
       document.getElementById("mSlots").textContent = "0";
       document.getElementById("mUnalloc").textContent = "0.0";
@@ -218,7 +315,7 @@ def home():
           const entries = Object.entries(plan[day] || {});
           const tasksHtml = entries.length
             ? entries.map(([task, hours]) => `<div>${task}: <strong>${Number(hours).toFixed(1)}h</strong></div>`).join("")
-            : '<div class="muted">(no study)</div>';
+            : '<div class="empty">No study scheduled. Recharge your brain.</div>';
           return `<div class="day-block"><div class="day-title">${day}</div>${tasksHtml}</div>`;
         })
         .join("");
@@ -231,18 +328,18 @@ def home():
         ${daysHtml}
         <div class="day-block">
           <div class="day-title">Unallocated Hours</div>
-          ${unallocItems || '<div class="muted">All requested hours allocated.</div>'}
+          ${unallocItems || '<div class="empty">Everything fit. You are unstoppable.</div>'}
         </div>
       `;
     }
 
     async function runPlan() {
-      status.textContent = "Working...";
+      setStatus("Crunching numbers...");
       runBtn.disabled = true;
       try {
         const payload = collectPayload();
         if (!payload.tasks.length) {
-          throw new Error("Add at least one task with hours.");
+          throw new Error("Add at least one task with hours so I have something to plan.");
         }
         const res = await fetch("/api/plan", {
           method: "POST",
@@ -250,12 +347,12 @@ def home():
           body: JSON.stringify(payload)
         });
         const data = await res.json();
-        if (!res.ok) throw new Error("Request failed.");
+        if (!res.ok) throw new Error(data?.error || "Request failed.");
         renderPlan(data);
-        status.textContent = res.ok ? "Done" : "Request failed";
+        setStatus("Plan generated. Go crush it!");
       } catch (err) {
-        status.textContent = "Check inputs and try again";
-        planOutput.innerHTML = `<div class="muted">${String(err)}</div>`;
+        setStatus("Please fix inputs and try again.", true);
+        planOutput.innerHTML = `<div class="empty error">${String(err)}</div>`;
       } finally {
         runBtn.disabled = false;
       }
