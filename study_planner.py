@@ -16,16 +16,17 @@ class Task:
     name: str
     hours_needed: float
     due: date | None = None
+    priority: float = 1.0
 
 
 def start_of_week(any_day: date) -> date:
     return any_day - timedelta(days=any_day.weekday())
 
 
-def _task_sort_key(task: Task, week_start: date) -> Tuple[int, float]:
+def _task_sort_key(task: Task, week_start: date) -> Tuple[float, int, float]:
     due_offset = 999 if task.due is None else max(0, (task.due - week_start).days)
-    # Urgent tasks first, then larger tasks.
-    return (due_offset, -task.hours_needed)
+    # Higher-priority tasks first, then urgent tasks, then larger tasks.
+    return (-task.priority, due_offset, -task.hours_needed)
 
 
 def _normalize_daily_hours(daily_hours: Dict[str, float]) -> Dict[str, float]:
@@ -46,6 +47,8 @@ def _validate_tasks(tasks: List[Task]) -> None:
             raise ValueError("Task names must be non-empty.")
         if task.hours_needed <= 0:
             raise ValueError(f"Task '{task.name}' must have positive hours_needed.")
+        if task.priority <= 0:
+            raise ValueError(f"Task '{task.name}' must have positive priority.")
         if task.name in seen_names:
             raise ValueError(f"Duplicate task name detected: '{task.name}'.")
         seen_names.add(task.name)
@@ -116,6 +119,7 @@ def load_config(config_path: str):
             name=item["name"],
             hours_needed=float(item["hours_needed"]),
             due=date.fromisoformat(item["due"]) if item.get("due") else None,
+            priority=float(item.get("priority", 1.0)),
         )
         for item in payload.get("tasks", [])
     ]

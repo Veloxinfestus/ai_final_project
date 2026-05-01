@@ -21,10 +21,10 @@ DEFAULT_PAYLOAD = {
         "Sunday": 4,
     },
     "tasks": [
-        {"name": "Biology lab report", "due": "2026-04-23", "hours_needed": 5},
-        {"name": "Statistics problem set", "due": "2026-04-25", "hours_needed": 4},
-        {"name": "History reading quiz", "due": "2026-04-27", "hours_needed": 2},
-        {"name": "Physics midterm", "due": "2026-05-02", "hours_needed": 12},
+        {"name": "Biology lab report", "due": "2026-04-23", "hours_needed": 5, "priority": 1},
+        {"name": "Statistics problem set", "due": "2026-04-25", "hours_needed": 4, "priority": 1},
+        {"name": "History reading quiz", "due": "2026-04-27", "hours_needed": 2, "priority": 1.2},
+        {"name": "Physics midterm", "due": "2026-05-02", "hours_needed": 12, "priority": 2},
     ],
 }
 
@@ -103,6 +103,22 @@ def home():
       --accent-soft: #fff2fb;
       --shadow: 0 14px 28px rgba(255, 123, 203, 0.32);
       color-scheme: light;
+    }
+    [data-theme="alien"] {
+      --bg-main: #041013;
+      --bg-grad-a: #09292d;
+      --bg-grad-b: #132114;
+      --text-main: #8bffcf;
+      --text-muted: #59d5ab;
+      --card-bg: rgba(5, 25, 26, 0.86);
+      --card-border: #1b6d5f;
+      --input-bg: rgba(4, 21, 22, 0.95);
+      --input-border: #1d7f6a;
+      --accent: #33ffbb;
+      --accent-strong: #54ffd1;
+      --accent-soft: rgba(42, 255, 180, 0.14);
+      --shadow: 0 14px 30px rgba(3, 19, 17, 0.6);
+      color-scheme: dark;
     }
     body {
       margin: 0;
@@ -301,6 +317,7 @@ def home():
           <option value="midnight">Midnight</option>
           <option value="sunset">Sunset</option>
           <option value="rainbow">Rainbow Sparkle</option>
+          <option value="alien">Xor'vii Zha</option>
         </select>
       </div>
     </header>
@@ -316,7 +333,7 @@ def home():
         <h3 class="section-title" style="margin-top:14px;">Your Tasks</h3>
         <table>
           <thead>
-            <tr><th>Task</th><th>Due Date</th><th>Hours</th><th></th></tr>
+            <tr><th>Task</th><th>Due Date</th><th>Hours</th><th>Priority</th><th></th></tr>
           </thead>
           <tbody id="taskRows"></tbody>
         </table>
@@ -341,6 +358,15 @@ def home():
   <script>
     const starter = {{ starter | safe }};
     const weekdays = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+    const alienDayNames = {
+      Monday: "Xal'dor",
+      Tuesday: "Vrinn",
+      Wednesday: "Qo'thex",
+      Thursday: "Zhar",
+      Friday: "Nexul",
+      Saturday: "Krii",
+      Sunday: "Ul'vax",
+    };
     const weekOf = document.getElementById("weekOf");
     const hoursGrid = document.getElementById("hoursGrid");
     const taskRows = document.getElementById("taskRows");
@@ -351,6 +377,134 @@ def home():
     const planOutput = document.getElementById("planOutput");
     const themeSelect = document.getElementById("themeSelect");
     const THEME_KEY = "studyPlannerTheme";
+    const copy = {
+      normal: {
+        title: "Study Planner",
+        subtitle: "Build an optimized weekly schedule from your tasks, due dates, and available study hours.",
+        themeLabel: "Theme",
+        inputs: "Inputs",
+        weekOf: "Week Of",
+        dailyHours: "Daily Study Hours",
+        tasks: "Your Tasks",
+        thTask: "Task",
+        thDue: "Due Date",
+        thHours: "Hours",
+        thPriority: "Priority",
+        addTask: "+ Add Task",
+        run: "Make My Plan",
+        reset: "Reset Defaults",
+        scheduleTitle: "Final Optimized Schedule",
+        mWeek: "Week",
+        mSlots: "Task Slots",
+        mUnalloc: "Unallocated Hours",
+        initialPlan: "Click Make My Plan to generate your optimized schedule.",
+        optimization: "Optimization Result:",
+        summaryLine: (allocated, requested, rate) =>
+          `${allocated.toFixed(1)}h allocated out of ${requested.toFixed(1)}h requested (${rate.toFixed(0)}% allocation rate).`,
+        restDay: "(rest day)",
+        unallocatedTitle: "Unallocated Hours",
+        allFit: "Everything fits beautifully this week.",
+        statusReady: "Ready",
+        statusWorking: "Working magic...",
+        statusDone: "Plan complete - you got this!",
+        statusError: "Please check inputs and try again",
+        noTaskError: "Add at least one task with hours.",
+        remove: "Remove",
+        taskPlaceholder: "Task name",
+        optionModern: "Modern (Default)",
+        optionMidnight: "Midnight",
+        optionSunset: "Sunset",
+        optionRainbow: "Rainbow Sparkle",
+        optionAlien: "Xor'vii Zha",
+        requestFailed: "Request failed",
+      },
+      alien: {
+        title: "Xyr'qall Vriin",
+        subtitle: "Zor'kai thul vekra zyn doq ul'var neth krii xall.",
+        themeLabel: "Thii'me",
+        inputs: "Kraxx",
+        weekOf: "Wex Tor",
+        dailyHours: "Vhor Nylak",
+        tasks: "Drav'kul",
+        thTask: "Drav",
+        thDue: "Zhaq",
+        thHours: "Ruu",
+        thPriority: "Qir",
+        addTask: "+ Zek Drav",
+        run: "Vrii'k Nax",
+        reset: "Klor Nul",
+        scheduleTitle: "Zyn'korr Vlax",
+        mWeek: "Wex",
+        mSlots: "Qir Vox",
+        mUnalloc: "Ruu Neth",
+        initialPlan: "Vrii'k Nax tor zyn'korr.",
+        optimization: "Qorr Vex:",
+        summaryLine: (allocated, requested, rate) =>
+          `${allocated.toFixed(1)}ruu vex ${requested.toFixed(1)}ruu qorr (${rate.toFixed(0)}% qir-vra).`,
+        restDay: "(nul-vor)",
+        unallocatedTitle: "Ruu Neth",
+        allFit: "Zyn qorr vexa nul.",
+        statusReady: "Nul",
+        statusWorking: "Vrii...",
+        statusDone: "Xall-vra!",
+        statusError: "Neth krax. Vrii agn.",
+        noTaskError: "Zek drav ruu.",
+        remove: "Nulx",
+        taskPlaceholder: "Drav-zen",
+        optionModern: "Modr-Xi",
+        optionMidnight: "Nok'th",
+        optionSunset: "Sur'zet",
+        optionRainbow: "Raen'bo",
+        optionAlien: "Xor'vii Zha",
+        requestFailed: "Neth-vra",
+      },
+    };
+
+    function isAlienTheme() {
+      return document.documentElement.getAttribute("data-theme") === "alien";
+    }
+
+    function getUiCopy() {
+      return isAlienTheme() ? copy.alien : copy.normal;
+    }
+
+    function getDayLabel(day) {
+      return isAlienTheme() ? alienDayNames[day] : day;
+    }
+
+    function applyCopy() {
+      const c = getUiCopy();
+      document.querySelector(".hero-copy h1").textContent = c.title;
+      document.querySelector(".hero-copy p").textContent = c.subtitle;
+      document.querySelector(".theme-switch label").textContent = c.themeLabel;
+      document.querySelector(".input-panel h2.section-title").textContent = c.inputs;
+      document.querySelector("label[for='weekOf']").textContent = c.weekOf;
+      document.querySelectorAll(".input-panel h3.section-title")[0].textContent = c.dailyHours;
+      document.querySelectorAll(".input-panel h3.section-title")[1].textContent = c.tasks;
+      const headers = document.querySelectorAll(".input-panel thead th");
+      headers[0].textContent = c.thTask;
+      headers[1].textContent = c.thDue;
+      headers[2].textContent = c.thHours;
+      headers[3].textContent = c.thPriority;
+      addTaskBtn.textContent = c.addTask;
+      runBtn.textContent = c.run;
+      resetBtn.textContent = c.reset;
+      document.querySelector(".schedule-panel .section-title").textContent = c.scheduleTitle;
+      const metricLabels = document.querySelectorAll(".metric .k");
+      metricLabels[0].textContent = c.mWeek;
+      metricLabels[1].textContent = c.mSlots;
+      metricLabels[2].textContent = c.mUnalloc;
+      const opts = themeSelect.options;
+      opts[0].text = c.optionModern;
+      opts[1].text = c.optionMidnight;
+      opts[2].text = c.optionSunset;
+      opts[3].text = c.optionRainbow;
+      opts[4].text = c.optionAlien;
+      taskRows.querySelectorAll("tr").forEach((tr) => {
+        tr.querySelectorAll("input")[0].placeholder = c.taskPlaceholder;
+        tr.querySelector(".removeBtn").textContent = c.remove;
+      });
+    }
 
     function applyTheme(theme) {
       const selected = theme || "modern";
@@ -361,6 +515,7 @@ def home():
       }
       themeSelect.value = selected;
       localStorage.setItem(THEME_KEY, selected);
+      applyCopy();
     }
 
     function renderHours(hours) {
@@ -369,36 +524,40 @@ def home():
         const wrapper = document.createElement("div");
         wrapper.className = "field";
         wrapper.innerHTML = `
-          <label for="h-${day}">${day}</label>
+          <label for="h-${day}">${getDayLabel(day)}</label>
           <input id="h-${day}" type="number" min="0" step="0.5" value="${hours?.[day] ?? 0}" />
         `;
         hoursGrid.appendChild(wrapper);
       });
     }
 
-    function makeTaskRow(task = {name: "", due: "", hours_needed: 1}) {
+    function makeTaskRow(task = {name: "", due: "", hours_needed: 1, priority: 1}) {
+      const c = getUiCopy();
       const tr = document.createElement("tr");
       tr.innerHTML = `
-        <td><input type="text" placeholder="Task name" value="${task.name ?? ""}" /></td>
+        <td><input type="text" placeholder="${c.taskPlaceholder}" value="${task.name ?? ""}" /></td>
         <td><input type="date" value="${task.due ?? ""}" /></td>
         <td><input type="number" min="0.5" step="0.5" value="${task.hours_needed ?? 1}" /></td>
-        <td><button type="button" class="secondary removeBtn">Remove</button></td>
+        <td><input type="number" min="0.1" step="0.1" value="${task.priority ?? 1}" /></td>
+        <td><button type="button" class="secondary removeBtn">${c.remove}</button></td>
       `;
       tr.querySelector(".removeBtn").addEventListener("click", () => tr.remove());
       taskRows.appendChild(tr);
     }
 
     function loadDefaults() {
+      const c = getUiCopy();
       weekOf.value = starter.week_of || "";
       renderHours(starter.daily_study_hours || {});
       taskRows.innerHTML = "";
       (starter.tasks || []).forEach((task) => makeTaskRow(task));
       if (!taskRows.children.length) makeTaskRow();
-      status.textContent = "Ready";
-      planOutput.innerHTML = '<div class="muted">Click Make My Plan to generate your optimized schedule.</div>';
+      status.textContent = c.statusReady;
+      planOutput.innerHTML = `<div class="muted">${c.initialPlan}</div>`;
       document.getElementById("mWeek").textContent = "-";
       document.getElementById("mSlots").textContent = "0";
       document.getElementById("mUnalloc").textContent = "0.0";
+      applyCopy();
     }
 
     function collectPayload() {
@@ -410,11 +569,13 @@ def home():
 
       const tasks = Array.from(taskRows.querySelectorAll("tr"))
         .map((tr) => {
-          const [nameInput, dueInput, hrsInput] = tr.querySelectorAll("input");
+          const [nameInput, dueInput, hrsInput, priorityInput] = tr.querySelectorAll("input");
+          const priorityValue = Number(priorityInput.value || 1);
           return {
             name: (nameInput.value || "").trim(),
             due: dueInput.value || null,
             hours_needed: Number(hrsInput.value || 0),
+            priority: Number.isFinite(priorityValue) && priorityValue > 0 ? priorityValue : 1,
           };
         })
         .filter((t) => t.name && t.hours_needed > 0);
@@ -427,6 +588,7 @@ def home():
     }
 
     function renderPlan(data) {
+      const c = getUiCopy();
       const week = data.week_of || "-";
       const plan = data.plan || {};
       const unallocated = data.unallocated_hours || {};
@@ -443,8 +605,8 @@ def home():
           const entries = Object.entries(plan[day] || {});
           const tasksHtml = entries.length
             ? entries.map(([task, hours]) => `<div>${task}: <strong>${Number(hours).toFixed(1)}h</strong></div>`).join("")
-            : '<div class="muted">(rest day)</div>';
-          return `<div class="day-block"><div class="day-title">${day}</div>${tasksHtml}</div>`;
+            : `<div class="muted">${c.restDay}</div>`;
+          return `<div class="day-block"><div class="day-title">${getDayLabel(day)}</div>${tasksHtml}</div>`;
         })
         .join("");
 
@@ -458,25 +620,25 @@ def home():
 
       planOutput.innerHTML = `
         <div class="schedule-summary">
-          <strong>Optimization Result:</strong>
-          ${allocated.toFixed(1)}h allocated out of ${requested.toFixed(1)}h requested
-          (${allocationRate.toFixed(0)}% allocation rate).
+          <strong>${c.optimization}</strong>
+          ${c.summaryLine(allocated, requested, allocationRate)}
         </div>
         ${daysHtml}
         <div class="day-block">
-          <div class="day-title">Unallocated Hours</div>
-          ${unallocItems || '<div class="muted">Everything fits beautifully this week.</div>'}
+          <div class="day-title">${c.unallocatedTitle}</div>
+          ${unallocItems || `<div class="muted">${c.allFit}</div>`}
         </div>
       `;
     }
 
     async function runPlan() {
-      status.textContent = "Working magic...";
+      const c = getUiCopy();
+      status.textContent = c.statusWorking;
       runBtn.disabled = true;
       try {
         const payload = collectPayload();
         if (!payload.tasks.length) {
-          throw new Error("Add at least one task with hours.");
+          throw new Error(c.noTaskError);
         }
         const res = await fetch("/api/plan", {
           method: "POST",
@@ -484,11 +646,11 @@ def home():
           body: JSON.stringify(payload)
         });
         const data = await res.json();
-        if (!res.ok) throw new Error("Request failed.");
+        if (!res.ok) throw new Error(c.requestFailed);
         renderPlan(data);
-        status.textContent = res.ok ? "Plan complete - you got this!" : "Request failed";
+        status.textContent = res.ok ? c.statusDone : c.requestFailed;
       } catch (err) {
-        status.textContent = "Please check inputs and try again";
+        status.textContent = c.statusError;
         planOutput.innerHTML = `<div class="muted">${String(err)}</div>`;
       } finally {
         runBtn.disabled = false;
@@ -527,6 +689,7 @@ def plan():
             name=item["name"],
             hours_needed=float(item["hours_needed"]),
             due=date.fromisoformat(item["due"]) if item.get("due") else None,
+            priority=float(item.get("priority", 1.0)),
         )
         for item in tasks_payload
     ]
