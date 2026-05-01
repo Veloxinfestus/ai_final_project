@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import json
 from datetime import date
-from typing import Any, Dict, List
 
 from flask import Flask, jsonify, render_template_string, request
 
@@ -39,196 +38,194 @@ def home():
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Study Planner Party</title>
+  <title>Study Planner // Ritual Mode</title>
   <style>
-    :root {
-      color-scheme: dark;
-      --bg: #140f2b;
-      --card: rgba(33, 25, 66, 0.84);
-      --border: rgba(170, 123, 255, 0.45);
-      --text: #f8efff;
-      --muted: #ccb8e9;
-      --accent: #6cf8d7;
-      --accent2: #ffd166;
-      --danger: #ff7e7e;
-    }
-    * { box-sizing: border-box; }
+    :root { color-scheme: dark; }
     body {
       margin: 0;
+      font-family: "JetBrains Mono", "Fira Code", Consolas, monospace;
       min-height: 100vh;
-      font-family: "Trebuchet MS", "Comic Sans MS", Inter, system-ui, Arial, sans-serif;
-      color: var(--text);
       background:
-        radial-gradient(circle at 12% 10%, rgba(255, 94, 196, 0.35), transparent 30%),
-        radial-gradient(circle at 88% 8%, rgba(108, 248, 215, 0.35), transparent 26%),
-        radial-gradient(circle at 50% 100%, rgba(255, 209, 102, 0.18), transparent 30%),
-        linear-gradient(155deg, #1a1238 0%, #140f2b 40%, #1e0e2f 100%);
-      background-attachment: fixed;
+        radial-gradient(circle at 15% 25%, rgba(255, 0, 153, 0.2), transparent 40%),
+        radial-gradient(circle at 90% 10%, rgba(0, 255, 255, 0.12), transparent 30%),
+        radial-gradient(circle at 65% 80%, rgba(179, 0, 255, 0.2), transparent 35%),
+        linear-gradient(125deg, #07040f 0%, #120b1f 48%, #080512 100%);
+      color: #ecf6ff;
+      letter-spacing: 0.2px;
+      overflow-x: hidden;
     }
-    .wrap { max-width: 1180px; margin: 0 auto; padding: 28px 20px 36px; }
+    body::before {
+      content: "";
+      position: fixed;
+      inset: -100%;
+      pointer-events: none;
+      background: repeating-linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.03) 0 1px,
+        transparent 1px 4px
+      );
+      animation: drift 18s linear infinite;
+      z-index: -1;
+    }
+    .wrap { max-width: 1160px; margin: 0 auto; padding: 24px; }
     .hero {
-      border: 2px dashed rgba(255, 209, 102, 0.75);
-      border-radius: 20px;
-      padding: 18px 20px;
       margin-bottom: 16px;
-      background: rgba(17, 12, 40, 0.65);
-      position: relative;
-      overflow: hidden;
+      padding: 14px 16px;
+      border-radius: 14px;
+      border: 1px solid #5d2d7d;
+      background: linear-gradient(120deg, rgba(46, 7, 62, 0.8), rgba(9, 16, 43, 0.75));
+      box-shadow: 0 0 24px rgba(160, 77, 255, 0.3), inset 0 0 22px rgba(39, 200, 255, 0.1);
     }
-    .hero::after {
-      content: "✨   🪩   ✨   🧠   ✨   📚   ✨";
-      position: absolute;
-      right: 12px;
-      top: 8px;
-      font-size: 18px;
-      opacity: 0.55;
+    .card {
+      background: linear-gradient(160deg, rgba(16, 8, 31, 0.88), rgba(6, 18, 34, 0.87));
+      border: 1px solid #364468;
+      border-radius: 14px;
+      padding: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.4), 0 0 30px rgba(136, 43, 211, 0.18);
+      backdrop-filter: blur(2px);
     }
     h1 {
-      margin: 0 0 6px;
-      font-size: clamp(1.8rem, 2.6vw, 2.7rem);
-      letter-spacing: 0.4px;
+      margin: 0 0 12px;
+      font-size: 34px;
+      text-transform: uppercase;
+      line-height: 1;
+      color: #f8dbff;
+      text-shadow: 1px 0 #00eeff, -1px 0 #ff147f, 0 0 18px rgba(191, 89, 255, 0.65);
     }
-    .subtitle { margin: 0; color: var(--muted); font-size: 0.98rem; }
-    .layout { display: grid; gap: 16px; grid-template-columns: minmax(0, 1.22fr) minmax(0, 1fr); }
-    .card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 18px;
-      padding: 16px;
-      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.25);
-      backdrop-filter: blur(2px);
-      position: relative;
-      overflow: hidden;
+    p { margin: 0 0 12px; color: #d2c4ec; }
+    .layout { display: grid; grid-template-columns: 1.2fr 1fr; gap: 16px; }
+    .section-title {
+      margin: 0 0 10px;
+      font-size: 16px;
+      color: #7df4ff;
+      text-transform: uppercase;
+      letter-spacing: 1px;
     }
-    .card::before {
-      content: "";
-      position: absolute;
-      width: 190px;
-      height: 190px;
-      border-radius: 999px;
-      background: radial-gradient(circle, rgba(255, 209, 102, 0.18), transparent 70%);
-      right: -88px;
-      top: -90px;
-      pointer-events: none;
-    }
-    .section-title { margin: 0 0 8px; font-size: 1.06rem; }
-    .muted { color: var(--muted); font-size: 0.9rem; }
-    .field { display: flex; flex-direction: column; gap: 6px; }
-    .field label { font-size: 0.85rem; color: #f0dcff; }
     .inputs-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    .field label { font-size: 13px; color: #d8a2ff; }
     input, select {
       width: 100%;
-      border: 1px solid rgba(229, 203, 255, 0.45);
-      border-radius: 11px;
-      background: rgba(15, 10, 37, 0.78);
-      color: #f8f1ff;
-      padding: 9px 10px;
-      font-size: 13px;
-      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      box-sizing: border-box;
+      border-radius: 10px;
+      border: 1px solid #4b3a6c;
+      background: rgba(9, 13, 33, 0.82);
+      color: #d6fcff;
+      padding: 9px 10px; font-size: 13px;
+      transition: border-color .15s ease, box-shadow .15s ease, transform .12s ease;
     }
     input:focus, select:focus {
       outline: none;
-      border-color: var(--accent);
-      box-shadow: 0 0 0 2px rgba(108, 248, 215, 0.25);
-    }
-    .toolbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin: 10px 0 8px;
-      gap: 8px;
-      flex-wrap: wrap;
+      border-color: #4ffbff;
+      box-shadow: 0 0 0 2px rgba(120, 20, 255, 0.35), 0 0 12px rgba(79, 251, 255, 0.35);
+      transform: translateY(-1px);
     }
     table { width: 100%; border-collapse: collapse; }
-    th, td { padding: 8px; border-bottom: 1px solid rgba(205, 173, 247, 0.25); font-size: 13px; }
-    th { color: #f6de93; text-align: left; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; }
-    .actions { margin-top: 12px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    th, td { padding: 8px; border-bottom: 1px solid #2f3656; font-size: 13px; }
+    th { color: #f3bdff; text-align: left; }
+    .actions { margin: 12px 0 0; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
     button {
-      border: 0;
-      border-radius: 11px;
-      padding: 10px 13px;
-      font-size: 13px;
-      font-weight: 700;
-      cursor: pointer;
-      color: #22152d;
-      background: linear-gradient(135deg, #6cf8d7, #7efde2);
+      border: 1px solid #2d8fc0;
+      border-radius: 10px;
+      background: linear-gradient(120deg, #28ffe0, #8de2ff);
+      color: #0b0f2c;
+      font-weight: 800;
+      padding: 10px 14px; cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: .7px;
+      box-shadow: 0 0 14px rgba(52, 231, 255, 0.38);
     }
-    button:hover { filter: brightness(1.07); transform: translateY(-1px); }
-    button:disabled { opacity: 0.65; cursor: not-allowed; transform: none; }
     button.secondary {
-      background: linear-gradient(135deg, #ffd166, #ffb703);
-      color: #3b2400;
+      background: linear-gradient(120deg, #481766, #2d2d7f);
+      border: 1px solid #8453c0;
+      color: #f1e9ff;
+      box-shadow: 0 0 12px rgba(163, 74, 255, 0.24);
     }
-    button.ghost {
-      background: rgba(240, 216, 255, 0.13);
-      color: #f4e8ff;
-      border: 1px solid rgba(240, 216, 255, 0.38);
-    }
-    .status-pill {
-      margin-left: auto;
-      padding: 6px 10px;
+    button:hover { filter: brightness(1.08) saturate(1.2); transform: translateY(-1px); }
+    button:disabled { opacity: .6; cursor: not-allowed; }
+    .status {
+      color: #a6f8ff;
+      font-size: 14px;
+      padding: 3px 8px;
       border-radius: 999px;
-      background: rgba(108, 248, 215, 0.16);
-      border: 1px solid rgba(108, 248, 215, 0.55);
-      color: var(--accent);
-      font-size: 12px;
+      border: 1px solid rgba(92, 195, 255, 0.45);
+      background: rgba(12, 30, 54, 0.55);
     }
-    .chaos-switch {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      border: 1px dashed rgba(255, 209, 102, 0.6);
-      background: rgba(255, 209, 102, 0.08);
-      border-radius: 999px;
-      padding: 6px 10px;
-      font-size: 12px;
-      color: #ffe7a7;
-      margin-left: auto;
-    }
-    .chaos-switch input { width: auto; accent-color: #ff4dcc; }
-    body.party-mode {
-      animation: hueSpin 12s linear infinite;
-    }
-    body.party-mode .hero {
-      animation: wiggle 1.4s ease-in-out infinite;
-    }
-    body.party-mode .card:nth-child(odd) {
-      animation: bobble 2.6s ease-in-out infinite;
-    }
-    body.party-mode .card:nth-child(even) {
-      animation: bobble 2.6s ease-in-out infinite 0.7s;
-    }
-    @keyframes hueSpin {
-      0% { filter: hue-rotate(0deg); }
-      100% { filter: hue-rotate(360deg); }
-    }
-    @keyframes wiggle {
-      0%, 100% { transform: rotate(0deg); }
-      50% { transform: rotate(0.6deg); }
-    }
-    @keyframes bobble {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-2px); }
-    }
-    .result-meta { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 10px 0 12px; }
+    .result-meta { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-bottom: 10px; }
     .metric {
-      background: rgba(14, 9, 33, 0.65);
-      border: 1px solid rgba(255, 209, 102, 0.35);
+      background: linear-gradient(145deg, rgba(11, 14, 38, 0.88), rgba(25, 11, 44, 0.85));
+      border: 1px solid #3f3763;
       border-radius: 12px;
       padding: 10px;
     }
-    .metric .k { font-size: 12px; color: #f3dca0; }
-    .metric .v { font-size: 20px; font-weight: 800; }
+    .metric .k { color: #f2a2f4; font-size: 12px; margin-bottom: 4px; text-transform: uppercase; }
+    .metric .v { font-size: 18px; font-weight: 700; color: #a8feff; }
     .day-block {
-      border: 1px solid rgba(210, 183, 245, 0.3);
+      border: 1px solid #37426b;
       border-radius: 12px;
       padding: 10px;
       margin-bottom: 8px;
-      background: rgba(13, 8, 30, 0.58);
+      background: linear-gradient(170deg, rgba(9, 14, 37, 0.9), rgba(14, 9, 30, 0.92));
+      box-shadow: inset 0 0 12px rgba(197, 82, 255, 0.08);
     }
-    .day-title { font-size: 14px; margin-bottom: 6px; color: #f5e4ff; font-weight: 700; }
-    .empty { color: var(--muted); font-size: 13px; font-style: italic; }
-    .error { color: var(--danger); }
+    .day-title { font-size: 14px; margin-bottom: 6px; color: #8cefff; letter-spacing: .5px; }
+    .muted { color: #93a7cc; font-size: 12px; }
+    .glitch {
+      position: relative;
+      display: inline-block;
+      isolation: isolate;
+    }
+    .glitch::before,
+    .glitch::after {
+      content: attr(data-text);
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      mix-blend-mode: screen;
+    }
+    .glitch::before {
+      color: #00f0ff;
+      transform: translate(1px, 0);
+      clip-path: polygon(0 0, 100% 0, 100% 43%, 0 58%);
+      opacity: .7;
+      animation: buzzA 2.8s steps(1) infinite;
+    }
+    .glitch::after {
+      color: #ff3aa8;
+      transform: translate(-1px, 0);
+      clip-path: polygon(0 55%, 100% 40%, 100% 100%, 0 100%);
+      opacity: .7;
+      animation: buzzB 2.2s steps(1) infinite;
+    }
+    .weird-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+      padding: 6px 10px;
+      font-size: 11px;
+      letter-spacing: 1px;
+      border-radius: 999px;
+      text-transform: uppercase;
+      color: #140a2a;
+      background: linear-gradient(120deg, #ff7ad4, #87f3ff);
+      box-shadow: 0 0 18px rgba(247, 121, 219, 0.4);
+      font-weight: 800;
+    }
+    @keyframes drift {
+      from { transform: translateY(0); }
+      to { transform: translateY(24px); }
+    }
+    @keyframes buzzA {
+      0%, 16%, 100% { transform: translate(1px, 0); }
+      5% { transform: translate(-1px, -1px); }
+      7% { transform: translate(2px, 1px); }
+    }
+    @keyframes buzzB {
+      0%, 12%, 100% { transform: translate(-1px, 0); }
+      4% { transform: translate(1px, 1px); }
+      8% { transform: translate(-2px, -1px); }
+    }
     @media (max-width: 980px) {
       .layout { grid-template-columns: 1fr; }
       .inputs-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -238,48 +235,42 @@ def home():
 <body>
   <main class="wrap">
     <header class="hero">
-      <h1>Study Planner Party <span aria-hidden="true">🎉📚</span></h1>
-      <p class="subtitle">Turn chaos into a game plan. Feed your tasks, press the magic button, and let this nerdy gremlin organize your week.</p>
+      <div class="weird-tag">anomaly stable // 93%</div>
+      <h1 class="glitch" data-text="Study Planner">Study Planner</h1>
+      <p>Feed it your deadlines and available hours. It whispers back a schedule from the neon void.</p>
     </header>
     <div class="layout">
       <section class="card">
-        <h2 class="section-title">1) Set Up Your Week</h2>
-        <p class="muted">Enter your available hours and tasks. Keep it real; sleepy brains need breaks.</p>
-        <div class="field" style="max-width:240px; margin: 12px 0 10px;">
-          <label for="weekOf">Week Starting On</label>
+        <h2 class="section-title">Ritual Inputs</h2>
+        <div class="field" style="max-width:240px; margin-bottom: 10px;">
+          <label for="weekOf">Week Of</label>
           <input id="weekOf" type="date" />
         </div>
-        <h3 class="section-title">Daily Study Hours</h3>
+        <h3 class="section-title">Daily Energy Supply</h3>
         <div class="inputs-grid" id="hoursGrid"></div>
-        <div class="toolbar">
-          <h3 class="section-title" style="margin:0;">Tasks</h3>
-          <button type="button" class="ghost" id="addTask">+ Add another mission</button>
-        </div>
+        <h3 class="section-title" style="margin-top:14px;">Summoned Tasks</h3>
         <table>
           <thead>
-            <tr><th>Task Name</th><th>Due Date</th><th>Hours Needed</th><th></th></tr>
+            <tr><th>Quest</th><th>Doomsday</th><th>Hours</th><th></th></tr>
           </thead>
           <tbody id="taskRows"></tbody>
         </table>
         <div class="actions">
-          <button type="button" id="run">Generate My Battle Plan</button>
-          <button type="button" class="secondary" id="reset">Reset to Sample Data</button>
-          <label class="chaos-switch">
-            <input type="checkbox" id="partyMode" />
-            Maximum chaos mode
-          </label>
-          <span class="status-pill" id="status">Ready to plan</span>
+          <button type="button" class="secondary" id="addTask">+ Add Quest</button>
+          <button type="button" id="run">Conjure Plan</button>
+          <button type="button" class="secondary" id="reset">Reset Timeline</button>
+          <span class="status" id="status">Portal Ready</span>
         </div>
+      </div>
       </section>
       <section class="card">
-        <h2 class="section-title">2) Your Recommended Schedule</h2>
-        <p class="muted">The planner prioritizes urgent work while trying to fit your weekly hour budget.</p>
+        <h2 class="section-title">Recommended Timeline</h2>
         <div class="result-meta">
-          <div class="metric"><div class="k">Week</div><div class="v" id="mWeek">-</div></div>
-          <div class="metric"><div class="k">Task Slots</div><div class="v" id="mSlots">0</div></div>
-          <div class="metric"><div class="k">Unallocated Hours</div><div class="v" id="mUnalloc">0.0</div></div>
+          <div class="metric"><div class="k">Time Loop</div><div class="v" id="mWeek">-</div></div>
+          <div class="metric"><div class="k">Ritual Slots</div><div class="v" id="mSlots">0</div></div>
+          <div class="metric"><div class="k">Escaped Hours</div><div class="v" id="mUnalloc">0.0</div></div>
         </div>
-        <div id="planOutput" class="empty">Generate a plan and your colorful schedule appears here.</div>
+        <div id="planOutput" class="muted">Conjure a plan to reveal the timeline.</div>
       </section>
     </div>
   </main>
@@ -294,34 +285,6 @@ def home():
     const addTaskBtn = document.getElementById("addTask");
     const resetBtn = document.getElementById("reset");
     const planOutput = document.getElementById("planOutput");
-    const partyMode = document.getElementById("partyMode");
-    const successLines = [
-      "Plan generated. Time to academically speedrun.",
-      "Battle plan ready. Your deadlines are trembling.",
-      "Math completed. Brain activated. Let's go.",
-      "Schedule locked in. You are now 14% more wizard."
-    ];
-    const busyLines = [
-      "Crunching numbers...",
-      "Bribing the calendar goblins...",
-      "Negotiating peace between tasks and free time...",
-      "Summoning the productivity dragon..."
-    ];
-    const dayVibes = {
-      Monday: " Monday mission mode",
-      Tuesday: " Tuesday turbo",
-      Wednesday: " Midweek mayhem",
-      Thursday: " Thursday thunder",
-      Friday: " Friday finish-line energy",
-      Saturday: " Weekend grind (with snacks)",
-      Sunday: " Sunday reset vibes",
-    };
-    const randomFrom = (list) => list[Math.floor(Math.random() * list.length)];
-
-    function setStatus(text, isError = false) {
-      status.textContent = text;
-      status.classList.toggle("error", isError);
-    }
 
     function renderHours(hours) {
       hoursGrid.innerHTML = "";
@@ -339,10 +302,10 @@ def home():
     function makeTaskRow(task = {name: "", due: "", hours_needed: 1}) {
       const tr = document.createElement("tr");
       tr.innerHTML = `
-        <td><input type="text" placeholder="Example: Chemistry quiz prep" value="${task.name ?? ""}" /></td>
+        <td><input type="text" placeholder="Quest name" value="${task.name ?? ""}" /></td>
         <td><input type="date" value="${task.due ?? ""}" /></td>
         <td><input type="number" min="0.5" step="0.5" value="${task.hours_needed ?? 1}" /></td>
-        <td><button type="button" class="ghost removeBtn">Delete</button></td>
+        <td><button type="button" class="secondary removeBtn">Banish</button></td>
       `;
       tr.querySelector(".removeBtn").addEventListener("click", () => tr.remove());
       taskRows.appendChild(tr);
@@ -354,13 +317,11 @@ def home():
       taskRows.innerHTML = "";
       (starter.tasks || []).forEach((task) => makeTaskRow(task));
       if (!taskRows.children.length) makeTaskRow();
-      setStatus("Ready to plan");
-      planOutput.innerHTML = '<div class="empty">Generate a plan and your colorful schedule appears here.</div>';
+      status.textContent = "Portal Ready";
+      planOutput.innerHTML = '<div class="muted">Conjure a plan to reveal the timeline.</div>';
       document.getElementById("mWeek").textContent = "-";
       document.getElementById("mSlots").textContent = "0";
       document.getElementById("mUnalloc").textContent = "0.0";
-      partyMode.checked = false;
-      document.body.classList.remove("party-mode");
     }
 
     function collectPayload() {
@@ -404,8 +365,8 @@ def home():
           const entries = Object.entries(plan[day] || {});
           const tasksHtml = entries.length
             ? entries.map(([task, hours]) => `<div>${task}: <strong>${Number(hours).toFixed(1)}h</strong></div>`).join("")
-            : '<div class="empty">No study scheduled. Recharge your brain.</div>';
-          return `<div class="day-block"><div class="day-title">${dayVibes[day] || day}</div>${tasksHtml}</div>`;
+            : '<div class="muted">(silent void)</div>';
+          return `<div class="day-block"><div class="day-title">${day}</div>${tasksHtml}</div>`;
         })
         .join("");
 
@@ -416,19 +377,19 @@ def home():
       planOutput.innerHTML = `
         ${daysHtml}
         <div class="day-block">
-          <div class="day-title">Unallocated Hours</div>
-          ${unallocItems || '<div class="empty">Everything fit. You are unstoppable.</div>'}
+          <div class="day-title">Escaped Hours</div>
+          ${unallocItems || '<div class="muted">Nothing escaped. Full containment.</div>'}
         </div>
       `;
     }
 
     async function runPlan() {
-      setStatus(randomFrom(busyLines));
+      status.textContent = "Divining...";
       runBtn.disabled = true;
       try {
         const payload = collectPayload();
         if (!payload.tasks.length) {
-          throw new Error("Add at least one task with hours so I have something to plan.");
+          throw new Error("Add at least one quest with hours.");
         }
         const res = await fetch("/api/plan", {
           method: "POST",
@@ -436,12 +397,12 @@ def home():
           body: JSON.stringify(payload)
         });
         const data = await res.json();
-        if (!res.ok) throw new Error(data?.error || "Request failed.");
+        if (!res.ok) throw new Error("Request failed.");
         renderPlan(data);
-        setStatus(randomFrom(successLines));
+        status.textContent = res.ok ? "Anomaly Processed" : "Portal destabilized";
       } catch (err) {
-        setStatus("Please fix inputs and try again.", true);
-        planOutput.innerHTML = `<div class="empty error">${String(err)}</div>`;
+        status.textContent = "Signal corrupted";
+        planOutput.innerHTML = `<div class="muted">${String(err)}</div>`;
       } finally {
         runBtn.disabled = false;
       }
@@ -449,14 +410,6 @@ def home():
 
     addTaskBtn.addEventListener("click", () => makeTaskRow());
     resetBtn.addEventListener("click", loadDefaults);
-    partyMode.addEventListener("change", () => {
-      document.body.classList.toggle("party-mode", partyMode.checked);
-      if (partyMode.checked) {
-        setStatus("Chaos mode: ON. Hold onto your flashcards.");
-      } else {
-        setStatus("Chaos mode: OFF. Back to normal silliness.");
-      }
-    });
     runBtn.addEventListener("click", runPlan);
     loadDefaults();
   </script>
@@ -472,51 +425,25 @@ def health():
     return jsonify({"status": "healthy"})
 
 
-def _bad_request(message: str):
-    return jsonify({"error": message}), 400
-
-
-def _parse_plan_payload(payload: Dict[str, Any]) -> tuple[List[Task], Dict[str, float], date | None]:
-    week_of_raw = payload.get("week_of")
-    week_of = date.fromisoformat(week_of_raw) if week_of_raw else None
-
-    daily_hours_raw = payload.get("daily_study_hours")
-    if not isinstance(daily_hours_raw, dict):
-        raise ValueError("'daily_study_hours' must be an object keyed by weekday.")
-
-    tasks_payload = payload.get("tasks")
-    if not isinstance(tasks_payload, list) or not tasks_payload:
-        raise ValueError("'tasks' must be a non-empty list.")
-
-    tasks: List[Task] = []
-    for item in tasks_payload:
-        if not isinstance(item, dict):
-            raise ValueError("Each task must be an object.")
-        name = item.get("name")
-        hours_needed = item.get("hours_needed")
-        if name is None or hours_needed is None:
-            raise ValueError("Each task must include 'name' and 'hours_needed'.")
-        tasks.append(
-            Task(
-                name=str(name),
-                hours_needed=float(hours_needed),
-                due=date.fromisoformat(item["due"]) if item.get("due") else None,
-            )
-        )
-
-    return tasks, daily_hours_raw, week_of
-
-
 @app.post("/api/plan")
 def plan():
     payload = request.get_json(silent=True) or {}
-    try:
-        tasks, daily_hours, week_of = _parse_plan_payload(payload)
-        result = build_plan(tasks=tasks, daily_hours=daily_hours, week_of=week_of)
-    except (ValueError, TypeError) as exc:
-        return _bad_request(str(exc))
+    week_of_raw = payload.get("week_of")
+    week_of = date.fromisoformat(week_of_raw) if week_of_raw else None
+    daily_hours = payload.get("daily_study_hours", {})
+    tasks_payload = payload.get("tasks", [])
 
-    return jsonify(result), 200
+    tasks = [
+        Task(
+            name=item["name"],
+            hours_needed=float(item["hours_needed"]),
+            due=date.fromisoformat(item["due"]) if item.get("due") else None,
+        )
+        for item in tasks_payload
+    ]
+
+    result = build_plan(tasks=tasks, daily_hours=daily_hours, week_of=week_of)
+    return jsonify(result)
 
 
 if __name__ == "__main__":
