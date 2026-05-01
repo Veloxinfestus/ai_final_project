@@ -4,14 +4,6 @@
 This project is a Python web app that helps student success by generating a weekly study schedule from tasks, due dates, and daily availability.  
 It frames planning as an optimization problem: maximize on-time completion for urgent tasks while respecting a fixed weekly hour budget.
 
-## Why This Aligns With Requirements
-- **Language requirement:** implemented in Python.
-- **Agentic engineering:** project structure includes `ROBOTS.md` to guide AI agents.
-- **Robust testing:** includes planner and API tests in `tests/`.
-- **GitHub hosted:** repository is available on GitHub.
-- **Standalone web app:** Flask app is deployable to Vercel and supports a public URL.
-- **Human + AI docs:** both `README.md` and `ROBOTS.md` are maintained.
-
 ## Repository Layout
 - `study_planner.py`: core scheduling and optimization logic.
 - `api/index.py`: Flask API and lightweight browser UI.
