@@ -306,12 +306,12 @@ def home():
     </header>
     <div class="layout">
       <section class="card input-panel">
-        <h2 class="section-title">Happy Inputs</h2>
+        <h2 class="section-title">Inputs</h2>
         <div class="field" style="max-width:240px; margin-bottom: 10px;">
           <label for="weekOf">Week Of</label>
           <input id="weekOf" type="date" />
         </div>
-        <h3 class="section-title">Daily Study Energy</h3>
+        <h3 class="section-title">Daily Study Hours</h3>
         <div class="inputs-grid" id="hoursGrid"></div>
         <h3 class="section-title" style="margin-top:14px;">Your Tasks</h3>
         <table>
