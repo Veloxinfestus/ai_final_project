@@ -160,7 +160,12 @@ def home():
       color: var(--text-main);
     }
     p { margin: 0 0 12px; color: var(--text-muted); font-weight: 500; }
-    .layout { display: grid; grid-template-columns: 1.2fr 1fr; gap: 16px; }
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(620px, 1.25fr) minmax(420px, 1fr);
+      gap: 16px;
+      align-items: start;
+    }
     .section-title {
       margin: 0 0 10px;
       font-size: 16px;
@@ -232,6 +237,12 @@ def home():
       color: var(--text-muted);
     }
     .result-meta { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-bottom: 10px; }
+    .schedule-panel {
+      position: sticky;
+      top: 18px;
+      max-height: calc(100vh - 36px);
+      overflow: auto;
+    }
     .metric {
       background: var(--input-bg);
       border: 1px solid var(--input-border);
@@ -262,9 +273,17 @@ def home():
       from { transform: translateY(0); }
       to { transform: translateY(24px); }
     }
+    @media (max-width: 1200px) {
+      .layout { grid-template-columns: 1fr 1fr; }
+    }
     @media (max-width: 980px) {
       .layout { grid-template-columns: 1fr; }
       .inputs-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .schedule-panel {
+        position: static;
+        max-height: none;
+        overflow: visible;
+      }
     }
   </style>
 </head>
@@ -286,7 +305,7 @@ def home():
       </div>
     </header>
     <div class="layout">
-      <section class="card">
+      <section class="card input-panel">
         <h2 class="section-title">Happy Inputs</h2>
         <div class="field" style="max-width:240px; margin-bottom: 10px;">
           <label for="weekOf">Week Of</label>
@@ -307,9 +326,8 @@ def home():
           <button type="button" class="secondary" id="reset">Reset Defaults</button>
           <span class="status" id="status">Ready</span>
         </div>
-      </div>
       </section>
-      <section class="card">
+      <section class="card schedule-panel">
         <h2 class="section-title">Final Optimized Schedule</h2>
         <div class="result-meta">
           <div class="metric"><div class="k">Week</div><div class="v" id="mWeek">-</div></div>
