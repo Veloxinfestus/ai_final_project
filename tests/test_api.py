@@ -36,6 +36,7 @@ class ApiTests(unittest.TestCase):
         self.assertIn("plan", data)
         self.assertIn("metrics", data)
         self.assertIn("allocation_rate", data["metrics"])
+        self.assertIn("objective_score", data["metrics"])
 
     def test_plan_endpoint_handles_empty_tasks(self):
         response = self.client.post("/api/plan", json={"tasks": []})

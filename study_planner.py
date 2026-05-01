@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Dict, Iterable, List, Tuple
 
 WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+DAY_INDEX = {day: idx for idx, day in enumerate(WEEKDAYS)}
 
 
 @dataclass
@@ -54,6 +55,53 @@ def _validate_tasks(tasks: List[Task]) -> None:
         seen_names.add(task.name)
 
 
+def _due_index(task: Task, week_start: date) -> int:
+    if task.due is None:
+        return len(WEEKDAYS) - 1
+    return min(max((task.due - week_start).days, 0), len(WEEKDAYS) - 1)
+
+
+def evaluate_objective(plan: Dict[str, Dict[str, float]], tasks: List[Task], week_start: date) -> Dict[str, float]:
+    """
+    Objective function that scores a complete candidate solution.
+
+    Higher is better. The score rewards weighted on-time completion most heavily,
+    gives smaller credit for total completion, and penalizes late allocation.
+    """
+    score = 0.0
+    weighted_on_time_completion = 0.0
+    weighted_total_completion = 0.0
+    late_hours_penalty = 0.0
+
+    for task in tasks:
+        total_alloc = 0.0
+        on_time_alloc = 0.0
+        due_idx = _due_index(task, week_start)
+        for day_name, day_plan in plan.items():
+            allocated = float(day_plan.get(task.name, 0.0))
+            total_alloc += allocated
+            if DAY_INDEX[day_name] <= due_idx:
+                on_time_alloc += allocated
+
+        on_time_ratio = min(on_time_alloc / task.hours_needed, 1.0)
+        completion_ratio = min(total_alloc / task.hours_needed, 1.0)
+        late_hours = max(0.0, total_alloc - on_time_alloc)
+
+        weighted_on_time_completion += task.priority * on_time_ratio
+        weighted_total_completion += task.priority * completion_ratio
+        late_hours_penalty += late_hours
+
+        # Strongly prefer on-time completion for high-priority tasks.
+        score += task.priority * (5.0 * on_time_ratio + 2.0 * completion_ratio) - 1.5 * late_hours
+
+    return {
+        "objective_score": round(score, 4),
+        "weighted_on_time_completion": round(weighted_on_time_completion, 4),
+        "weighted_total_completion": round(weighted_total_completion, 4),
+        "late_hours_penalty": round(late_hours_penalty, 4),
+    }
+
+
 def build_plan(tasks: Iterable[Task], daily_hours: Dict[str, float], week_of: date | None = None):
     effective_week = week_of or start_of_week(date.today())
     task_list = list(tasks)
@@ -62,39 +110,54 @@ def build_plan(tasks: Iterable[Task], daily_hours: Dict[str, float], week_of: da
     ordered_tasks = sorted(task_list, key=lambda t: _task_sort_key(t, effective_week))
     remaining = {task.name: float(task.hours_needed) for task in ordered_tasks}
     plan: Dict[str, Dict[str, float]] = {day: {} for day in WEEKDAYS}
+    remaining_day = {day: float(hours) for day, hours in normalized_daily_hours.items()}
+    step_size = 0.5
 
-    for day_idx, day_name in enumerate(WEEKDAYS):
-        available = normalized_daily_hours[day_name]
-        if available <= 0:
-            continue
+    while True:
+        if not any(hours > 0 for hours in remaining_day.values()):
+            break
+        if not any(hours > 0 for hours in remaining.values()):
+            break
 
-        day_date = effective_week + timedelta(days=day_idx)
-        eligible_tasks: List[Task] = []
-        for task in ordered_tasks:
-            if remaining[task.name] <= 0:
-                continue
-            # Prefer tasks that are due now/soon, but still allow undated tasks.
-            if task.due is None or task.due >= day_date:
-                eligible_tasks.append(task)
+        base_score = evaluate_objective(plan, ordered_tasks, effective_week)["objective_score"]
+        best_move: Tuple[float, str, Task, float] | None = None
 
-        if not eligible_tasks:
-            eligible_tasks = [task for task in ordered_tasks if remaining[task.name] > 0]
-
-        for task in eligible_tasks:
+        for day_name in WEEKDAYS:
+            available = remaining_day[day_name]
             if available <= 0:
-                break
-            take = min(available, remaining[task.name])
-            if take <= 0:
                 continue
-            plan[day_name][task.name] = round(plan[day_name].get(task.name, 0.0) + take, 2)
-            remaining[task.name] = round(remaining[task.name] - take, 2)
-            available = round(available - take, 2)
+            for task in ordered_tasks:
+                if remaining[task.name] <= 0:
+                    continue
+                take = min(step_size, available, remaining[task.name])
+                if take <= 0:
+                    continue
+
+                candidate_plan = {d: allocations.copy() for d, allocations in plan.items()}
+                candidate_plan[day_name][task.name] = round(candidate_plan[day_name].get(task.name, 0.0) + take, 2)
+                candidate_score = evaluate_objective(candidate_plan, ordered_tasks, effective_week)["objective_score"]
+                gain = round(candidate_score - base_score, 6)
+
+                if best_move is None or gain > best_move[0]:
+                    best_move = (gain, day_name, task, take)
+
+        if best_move is None:
+            break
+        if best_move[0] <= 0:
+            # No move improves the objective further.
+            break
+
+        _, best_day, best_task, best_take = best_move
+        plan[best_day][best_task.name] = round(plan[best_day].get(best_task.name, 0.0) + best_take, 2)
+        remaining[best_task.name] = round(remaining[best_task.name] - best_take, 2)
+        remaining_day[best_day] = round(remaining_day[best_day] - best_take, 2)
 
     total_requested_hours = round(sum(task.hours_needed for task in ordered_tasks), 2)
     total_available_hours = round(sum(normalized_daily_hours.values()), 2)
     total_unallocated = round(sum(hours for hours in remaining.values() if hours > 0), 2)
     total_allocated = round(total_requested_hours - total_unallocated, 2)
     allocation_rate = 0.0 if total_requested_hours == 0 else round(total_allocated / total_requested_hours, 4)
+    objective_metrics = evaluate_objective(plan, ordered_tasks, effective_week)
 
     return {
         "week_of": effective_week.isoformat(),
@@ -105,6 +168,10 @@ def build_plan(tasks: Iterable[Task], daily_hours: Dict[str, float], week_of: da
             "total_available_hours": total_available_hours,
             "total_allocated_hours": total_allocated,
             "allocation_rate": allocation_rate,
+            "objective_score": objective_metrics["objective_score"],
+            "weighted_on_time_completion": objective_metrics["weighted_on_time_completion"],
+            "weighted_total_completion": objective_metrics["weighted_total_completion"],
+            "late_hours_penalty": objective_metrics["late_hours_penalty"],
         },
     }
 

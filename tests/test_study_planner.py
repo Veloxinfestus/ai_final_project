@@ -1,7 +1,7 @@
 from datetime import date
 import unittest
 
-from study_planner import Task, build_plan
+from study_planner import Task, build_plan, evaluate_objective
 
 
 class StudyPlannerTests(unittest.TestCase):
@@ -71,6 +71,32 @@ class StudyPlannerTests(unittest.TestCase):
         result = build_plan(tasks=tasks, daily_hours=daily_hours, week_of=date(2026, 4, 27))
         self.assertEqual(result["plan"]["Monday"], {"Midterm": 2.0})
         self.assertEqual(result["unallocated_hours"], {"Reading": 2.0})
+
+    def test_objective_function_ranks_on_time_plan_higher(self):
+        tasks = [Task(name="Exam", hours_needed=2, due=date(2026, 4, 28), priority=3)]
+        week_of = date(2026, 4, 27)
+        good_plan = {
+            "Monday": {"Exam": 2.0},
+            "Tuesday": {},
+            "Wednesday": {},
+            "Thursday": {},
+            "Friday": {},
+            "Saturday": {},
+            "Sunday": {},
+        }
+        bad_plan = {
+            "Monday": {},
+            "Tuesday": {},
+            "Wednesday": {},
+            "Thursday": {"Exam": 2.0},
+            "Friday": {},
+            "Saturday": {},
+            "Sunday": {},
+        }
+
+        good_score = evaluate_objective(good_plan, tasks, week_of)["objective_score"]
+        bad_score = evaluate_objective(bad_plan, tasks, week_of)["objective_score"]
+        self.assertGreater(good_score, bad_score)
 
 
 if __name__ == "__main__":

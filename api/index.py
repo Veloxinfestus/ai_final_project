@@ -401,6 +401,7 @@ def home():
         optimization: "Optimization Result:",
         summaryLine: (allocated, requested, rate) =>
           `${allocated.toFixed(1)}h allocated out of ${requested.toFixed(1)}h requested (${rate.toFixed(0)}% allocation rate).`,
+        objectiveLine: (score) => `Objective score: ${score.toFixed(2)} (higher is better).`,
         restDay: "(rest day)",
         unallocatedTitle: "Unallocated Hours",
         allFit: "Everything fits beautifully this week.",
@@ -441,6 +442,7 @@ def home():
         optimization: "Qorr Vex:",
         summaryLine: (allocated, requested, rate) =>
           `${allocated.toFixed(1)}ruu vex ${requested.toFixed(1)}ruu qorr (${rate.toFixed(0)}% qir-vra).`,
+        objectiveLine: (score) => `Qorr-skor: ${score.toFixed(2)} (ul-vrax).`,
         restDay: "(nul-vor)",
         unallocatedTitle: "Ruu Neth",
         allFit: "Zyn qorr vexa nul.",
@@ -617,11 +619,13 @@ def home():
       const allocationRate = Number(metrics.allocation_rate || 0) * 100;
       const allocated = Number(metrics.total_allocated_hours || 0);
       const requested = Number(metrics.total_requested_hours || 0);
+      const objectiveScore = Number(metrics.objective_score || 0);
 
       planOutput.innerHTML = `
         <div class="schedule-summary">
           <strong>${c.optimization}</strong>
-          ${c.summaryLine(allocated, requested, allocationRate)}
+          ${c.summaryLine(allocated, requested, allocationRate)}<br />
+          ${c.objectiveLine(objectiveScore)}
         </div>
         ${daysHtml}
         <div class="day-block">
