@@ -38,19 +38,19 @@ def home():
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Study Planner // Ritual Mode</title>
+  <title>Study Planner // Rainbow Sparkle Mode</title>
   <style>
-    :root { color-scheme: dark; }
+    :root { color-scheme: light; }
     body {
       margin: 0;
-      font-family: "JetBrains Mono", "Fira Code", Consolas, monospace;
+      font-family: "Comic Sans MS", "Trebuchet MS", "Segoe UI", sans-serif;
       min-height: 100vh;
       background:
-        radial-gradient(circle at 15% 25%, rgba(255, 0, 153, 0.2), transparent 40%),
-        radial-gradient(circle at 90% 10%, rgba(0, 255, 255, 0.12), transparent 30%),
-        radial-gradient(circle at 65% 80%, rgba(179, 0, 255, 0.2), transparent 35%),
-        linear-gradient(125deg, #07040f 0%, #120b1f 48%, #080512 100%);
-      color: #ecf6ff;
+        radial-gradient(circle at 12% 10%, rgba(255, 90, 196, 0.42), transparent 34%),
+        radial-gradient(circle at 88% 16%, rgba(120, 248, 255, 0.4), transparent 30%),
+        radial-gradient(circle at 78% 88%, rgba(171, 111, 255, 0.32), transparent 34%),
+        linear-gradient(130deg, #ff9eea 0%, #ffd8a6 22%, #fff4a6 42%, #b8ffd1 61%, #b5e0ff 78%, #d7b8ff 100%);
+      color: #45135f;
       letter-spacing: 0.2px;
       overflow-x: hidden;
     }
@@ -59,145 +59,141 @@ def home():
       position: fixed;
       inset: -100%;
       pointer-events: none;
-      background: repeating-linear-gradient(
-        180deg,
-        rgba(255, 255, 255, 0.03) 0 1px,
-        transparent 1px 4px
-      );
-      animation: drift 18s linear infinite;
+      background:
+        radial-gradient(circle, rgba(255, 255, 255, 0.92) 0 1px, transparent 2px),
+        radial-gradient(circle, rgba(255, 255, 255, 0.78) 0 1px, transparent 2px);
+      background-size: 120px 120px, 90px 90px;
+      background-position: 0 0, 40px 30px;
+      animation: sparkleFloat 12s linear infinite;
       z-index: -1;
+      opacity: 0.6;
     }
     .wrap { max-width: 1160px; margin: 0 auto; padding: 24px; }
     .hero {
       margin-bottom: 16px;
       padding: 14px 16px;
       border-radius: 14px;
-      border: 1px solid #5d2d7d;
-      background: linear-gradient(120deg, rgba(46, 7, 62, 0.8), rgba(9, 16, 43, 0.75));
-      box-shadow: 0 0 24px rgba(160, 77, 255, 0.3), inset 0 0 22px rgba(39, 200, 255, 0.1);
+      border: 2px solid #ff57b4;
+      background: linear-gradient(120deg, rgba(255, 255, 255, 0.66), rgba(255, 236, 250, 0.72));
+      box-shadow: 0 10px 28px rgba(255, 86, 190, 0.28), inset 0 0 22px rgba(255, 255, 255, 0.55);
     }
     .card {
-      background: linear-gradient(160deg, rgba(16, 8, 31, 0.88), rgba(6, 18, 34, 0.87));
-      border: 1px solid #364468;
+      background: linear-gradient(165deg, rgba(255, 255, 255, 0.7), rgba(255, 244, 251, 0.82));
+      border: 2px solid #ff9dda;
       border-radius: 14px;
       padding: 16px;
-      box-shadow: 0 10px 30px rgba(0,0,0,.4), 0 0 30px rgba(136, 43, 211, 0.18);
+      box-shadow: 0 10px 24px rgba(176, 67, 255, 0.16), 0 0 26px rgba(255, 255, 255, 0.34);
       backdrop-filter: blur(2px);
     }
     h1 {
       margin: 0 0 12px;
       font-size: 34px;
-      text-transform: uppercase;
+      text-transform: none;
       line-height: 1;
-      color: #f8dbff;
-      text-shadow: 1px 0 #00eeff, -1px 0 #ff147f, 0 0 18px rgba(191, 89, 255, 0.65);
+      color: #f4289a;
+      text-shadow: 2px 2px 0 #fff4a8, 0 0 14px rgba(255, 255, 255, 0.88);
     }
-    p { margin: 0 0 12px; color: #d2c4ec; }
+    p { margin: 0 0 12px; color: #6d2282; font-weight: 600; }
     .layout { display: grid; grid-template-columns: 1.2fr 1fr; gap: 16px; }
     .section-title {
       margin: 0 0 10px;
       font-size: 16px;
-      color: #7df4ff;
+      color: #d51d8c;
       text-transform: uppercase;
       letter-spacing: 1px;
     }
     .inputs-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
     .field { display: flex; flex-direction: column; gap: 6px; }
-    .field label { font-size: 13px; color: #d8a2ff; }
+    .field label { font-size: 13px; color: #8e1f8d; font-weight: 700; }
     input, select {
       width: 100%;
       box-sizing: border-box;
       border-radius: 10px;
-      border: 1px solid #4b3a6c;
-      background: rgba(9, 13, 33, 0.82);
-      color: #d6fcff;
+      border: 2px solid #f8a9e5;
+      background: rgba(255, 255, 255, 0.86);
+      color: #5a1769;
       padding: 9px 10px; font-size: 13px;
       transition: border-color .15s ease, box-shadow .15s ease, transform .12s ease;
     }
     input:focus, select:focus {
       outline: none;
-      border-color: #4ffbff;
-      box-shadow: 0 0 0 2px rgba(120, 20, 255, 0.35), 0 0 12px rgba(79, 251, 255, 0.35);
+      border-color: #54d8ff;
+      box-shadow: 0 0 0 3px rgba(255, 125, 198, 0.35), 0 0 12px rgba(84, 216, 255, 0.5);
       transform: translateY(-1px);
     }
     table { width: 100%; border-collapse: collapse; }
-    th, td { padding: 8px; border-bottom: 1px solid #2f3656; font-size: 13px; }
-    th { color: #f3bdff; text-align: left; }
+    th, td { padding: 8px; border-bottom: 1px solid #ffc3e7; font-size: 13px; }
+    th { color: #b02196; text-align: left; }
     .actions { margin: 12px 0 0; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
     button {
-      border: 1px solid #2d8fc0;
+      border: 2px solid #ff5ac1;
       border-radius: 10px;
-      background: linear-gradient(120deg, #28ffe0, #8de2ff);
-      color: #0b0f2c;
+      background: linear-gradient(115deg, #ff87d8, #ffd375, #b5ff91, #8ce4ff, #d7a6ff);
+      color: #5b1d6d;
       font-weight: 800;
       padding: 10px 14px; cursor: pointer;
       text-transform: uppercase;
       letter-spacing: .7px;
-      box-shadow: 0 0 14px rgba(52, 231, 255, 0.38);
+      box-shadow: 0 4px 14px rgba(255, 123, 203, 0.42);
     }
     button.secondary {
-      background: linear-gradient(120deg, #481766, #2d2d7f);
-      border: 1px solid #8453c0;
-      color: #f1e9ff;
-      box-shadow: 0 0 12px rgba(163, 74, 255, 0.24);
+      background: linear-gradient(120deg, #fff3b2, #ffc6f0, #caeaff);
+      border: 2px solid #f58bd7;
+      color: #8a218b;
+      box-shadow: 0 0 12px rgba(249, 137, 220, 0.28);
     }
-    button:hover { filter: brightness(1.08) saturate(1.2); transform: translateY(-1px); }
+    button:hover { filter: brightness(1.04) saturate(1.15); transform: translateY(-1px) scale(1.01); }
     button:disabled { opacity: .6; cursor: not-allowed; }
     .status {
-      color: #a6f8ff;
+      color: #922587;
       font-size: 14px;
       padding: 3px 8px;
       border-radius: 999px;
-      border: 1px solid rgba(92, 195, 255, 0.45);
-      background: rgba(12, 30, 54, 0.55);
+      border: 2px solid rgba(255, 111, 196, 0.6);
+      background: rgba(255, 255, 255, 0.72);
+      font-weight: 700;
     }
     .result-meta { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-bottom: 10px; }
     .metric {
-      background: linear-gradient(145deg, rgba(11, 14, 38, 0.88), rgba(25, 11, 44, 0.85));
-      border: 1px solid #3f3763;
+      background: linear-gradient(145deg, rgba(255, 255, 255, 0.72), rgba(255, 239, 250, 0.8));
+      border: 2px solid #f6a0dc;
       border-radius: 12px;
       padding: 10px;
     }
-    .metric .k { color: #f2a2f4; font-size: 12px; margin-bottom: 4px; text-transform: uppercase; }
-    .metric .v { font-size: 18px; font-weight: 700; color: #a8feff; }
+    .metric .k { color: #c1269d; font-size: 12px; margin-bottom: 4px; text-transform: uppercase; }
+    .metric .v { font-size: 18px; font-weight: 700; color: #5f1e86; }
     .day-block {
-      border: 1px solid #37426b;
+      border: 2px solid #f1abe2;
       border-radius: 12px;
       padding: 10px;
       margin-bottom: 8px;
-      background: linear-gradient(170deg, rgba(9, 14, 37, 0.9), rgba(14, 9, 30, 0.92));
-      box-shadow: inset 0 0 12px rgba(197, 82, 255, 0.08);
+      background: linear-gradient(170deg, rgba(255, 255, 255, 0.76), rgba(255, 241, 249, 0.84));
+      box-shadow: inset 0 0 12px rgba(255, 149, 214, 0.18);
     }
-    .day-title { font-size: 14px; margin-bottom: 6px; color: #8cefff; letter-spacing: .5px; }
-    .muted { color: #93a7cc; font-size: 12px; }
-    .glitch {
+    .day-title { font-size: 14px; margin-bottom: 6px; color: #a52395; letter-spacing: .4px; font-weight: 700; }
+    .muted { color: #9447ab; font-size: 12px; }
+    .sparkle-title {
       position: relative;
       display: inline-block;
-      isolation: isolate;
     }
-    .glitch::before,
-    .glitch::after {
-      content: attr(data-text);
+    .sparkle-title::before,
+    .sparkle-title::after {
+      content: "✨";
       position: absolute;
-      inset: 0;
       pointer-events: none;
-      mix-blend-mode: screen;
+      font-size: 20px;
+      animation: twinkle 2.2s ease-in-out infinite;
     }
-    .glitch::before {
-      color: #00f0ff;
-      transform: translate(1px, 0);
-      clip-path: polygon(0 0, 100% 0, 100% 43%, 0 58%);
-      opacity: .7;
-      animation: buzzA 2.8s steps(1) infinite;
+    .sparkle-title::before {
+      left: -24px;
+      top: 2px;
     }
-    .glitch::after {
-      color: #ff3aa8;
-      transform: translate(-1px, 0);
-      clip-path: polygon(0 55%, 100% 40%, 100% 100%, 0 100%);
-      opacity: .7;
-      animation: buzzB 2.2s steps(1) infinite;
+    .sparkle-title::after {
+      right: -24px;
+      top: 2px;
+      animation-delay: .7s;
     }
-    .weird-tag {
+    .cheer-tag {
       display: inline-flex;
       align-items: center;
       gap: 8px;
@@ -207,24 +203,18 @@ def home():
       letter-spacing: 1px;
       border-radius: 999px;
       text-transform: uppercase;
-      color: #140a2a;
-      background: linear-gradient(120deg, #ff7ad4, #87f3ff);
-      box-shadow: 0 0 18px rgba(247, 121, 219, 0.4);
+      color: #7a176f;
+      background: linear-gradient(120deg, #ffcbf0, #fff5bf, #beecff);
+      box-shadow: 0 0 18px rgba(255, 159, 222, 0.55);
       font-weight: 800;
     }
-    @keyframes drift {
+    @keyframes sparkleFloat {
       from { transform: translateY(0); }
-      to { transform: translateY(24px); }
+      to { transform: translateY(40px); }
     }
-    @keyframes buzzA {
-      0%, 16%, 100% { transform: translate(1px, 0); }
-      5% { transform: translate(-1px, -1px); }
-      7% { transform: translate(2px, 1px); }
-    }
-    @keyframes buzzB {
-      0%, 12%, 100% { transform: translate(-1px, 0); }
-      4% { transform: translate(1px, 1px); }
-      8% { transform: translate(-2px, -1px); }
+    @keyframes twinkle {
+      0%, 100% { opacity: 0.45; transform: scale(0.95) rotate(0deg); }
+      50% { opacity: 1; transform: scale(1.2) rotate(20deg); }
     }
     @media (max-width: 980px) {
       .layout { grid-template-columns: 1fr; }
@@ -235,42 +225,42 @@ def home():
 <body>
   <main class="wrap">
     <header class="hero">
-      <div class="weird-tag">anomaly stable // 93%</div>
-      <h1 class="glitch" data-text="Study Planner">Study Planner</h1>
-      <p>Feed it your deadlines and available hours. It whispers back a schedule from the neon void.</p>
+      <div class="cheer-tag">rainbow mode // max sparkle</div>
+      <h1 class="sparkle-title">Study Planner</h1>
+      <p>You are doing amazing. Add your week and tasks, and this planner will build a cheerful game plan for you.</p>
     </header>
     <div class="layout">
       <section class="card">
-        <h2 class="section-title">Ritual Inputs</h2>
+        <h2 class="section-title">Happy Inputs</h2>
         <div class="field" style="max-width:240px; margin-bottom: 10px;">
           <label for="weekOf">Week Of</label>
           <input id="weekOf" type="date" />
         </div>
-        <h3 class="section-title">Daily Energy Supply</h3>
+        <h3 class="section-title">Daily Study Energy</h3>
         <div class="inputs-grid" id="hoursGrid"></div>
-        <h3 class="section-title" style="margin-top:14px;">Summoned Tasks</h3>
+        <h3 class="section-title" style="margin-top:14px;">Your Tasks</h3>
         <table>
           <thead>
-            <tr><th>Quest</th><th>Doomsday</th><th>Hours</th><th></th></tr>
+            <tr><th>Task</th><th>Due Date</th><th>Hours</th><th></th></tr>
           </thead>
           <tbody id="taskRows"></tbody>
         </table>
         <div class="actions">
-          <button type="button" class="secondary" id="addTask">+ Add Quest</button>
-          <button type="button" id="run">Conjure Plan</button>
-          <button type="button" class="secondary" id="reset">Reset Timeline</button>
-          <span class="status" id="status">Portal Ready</span>
+          <button type="button" class="secondary" id="addTask">+ Add Task</button>
+          <button type="button" id="run">Make My Plan</button>
+          <button type="button" class="secondary" id="reset">Reset Defaults</button>
+          <span class="status" id="status">Ready to sparkle</span>
         </div>
       </div>
       </section>
       <section class="card">
-        <h2 class="section-title">Recommended Timeline</h2>
+        <h2 class="section-title">Recommended Schedule</h2>
         <div class="result-meta">
-          <div class="metric"><div class="k">Time Loop</div><div class="v" id="mWeek">-</div></div>
-          <div class="metric"><div class="k">Ritual Slots</div><div class="v" id="mSlots">0</div></div>
-          <div class="metric"><div class="k">Escaped Hours</div><div class="v" id="mUnalloc">0.0</div></div>
+          <div class="metric"><div class="k">Week</div><div class="v" id="mWeek">-</div></div>
+          <div class="metric"><div class="k">Task Slots</div><div class="v" id="mSlots">0</div></div>
+          <div class="metric"><div class="k">Unallocated Hours</div><div class="v" id="mUnalloc">0.0</div></div>
         </div>
-        <div id="planOutput" class="muted">Conjure a plan to reveal the timeline.</div>
+        <div id="planOutput" class="muted">Tap Make My Plan to see your personalized schedule.</div>
       </section>
     </div>
   </main>
@@ -302,10 +292,10 @@ def home():
     function makeTaskRow(task = {name: "", due: "", hours_needed: 1}) {
       const tr = document.createElement("tr");
       tr.innerHTML = `
-        <td><input type="text" placeholder="Quest name" value="${task.name ?? ""}" /></td>
+        <td><input type="text" placeholder="Task name" value="${task.name ?? ""}" /></td>
         <td><input type="date" value="${task.due ?? ""}" /></td>
         <td><input type="number" min="0.5" step="0.5" value="${task.hours_needed ?? 1}" /></td>
-        <td><button type="button" class="secondary removeBtn">Banish</button></td>
+        <td><button type="button" class="secondary removeBtn">Remove</button></td>
       `;
       tr.querySelector(".removeBtn").addEventListener("click", () => tr.remove());
       taskRows.appendChild(tr);
@@ -317,8 +307,8 @@ def home():
       taskRows.innerHTML = "";
       (starter.tasks || []).forEach((task) => makeTaskRow(task));
       if (!taskRows.children.length) makeTaskRow();
-      status.textContent = "Portal Ready";
-      planOutput.innerHTML = '<div class="muted">Conjure a plan to reveal the timeline.</div>';
+      status.textContent = "Ready to sparkle";
+      planOutput.innerHTML = '<div class="muted">Tap Make My Plan to see your personalized schedule.</div>';
       document.getElementById("mWeek").textContent = "-";
       document.getElementById("mSlots").textContent = "0";
       document.getElementById("mUnalloc").textContent = "0.0";
@@ -365,7 +355,7 @@ def home():
           const entries = Object.entries(plan[day] || {});
           const tasksHtml = entries.length
             ? entries.map(([task, hours]) => `<div>${task}: <strong>${Number(hours).toFixed(1)}h</strong></div>`).join("")
-            : '<div class="muted">(silent void)</div>';
+            : '<div class="muted">(rest day)</div>';
           return `<div class="day-block"><div class="day-title">${day}</div>${tasksHtml}</div>`;
         })
         .join("");
@@ -377,19 +367,19 @@ def home():
       planOutput.innerHTML = `
         ${daysHtml}
         <div class="day-block">
-          <div class="day-title">Escaped Hours</div>
-          ${unallocItems || '<div class="muted">Nothing escaped. Full containment.</div>'}
+          <div class="day-title">Unallocated Hours</div>
+          ${unallocItems || '<div class="muted">Everything fits beautifully this week.</div>'}
         </div>
       `;
     }
 
     async function runPlan() {
-      status.textContent = "Divining...";
+      status.textContent = "Working magic...";
       runBtn.disabled = true;
       try {
         const payload = collectPayload();
         if (!payload.tasks.length) {
-          throw new Error("Add at least one quest with hours.");
+          throw new Error("Add at least one task with hours.");
         }
         const res = await fetch("/api/plan", {
           method: "POST",
@@ -399,9 +389,9 @@ def home():
         const data = await res.json();
         if (!res.ok) throw new Error("Request failed.");
         renderPlan(data);
-        status.textContent = res.ok ? "Anomaly Processed" : "Portal destabilized";
+        status.textContent = res.ok ? "Plan complete - you got this!" : "Request failed";
       } catch (err) {
-        status.textContent = "Signal corrupted";
+        status.textContent = "Please check inputs and try again";
         planOutput.innerHTML = `<div class="muted">${String(err)}</div>`;
       } finally {
         runBtn.disabled = false;
