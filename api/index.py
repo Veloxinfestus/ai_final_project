@@ -38,6 +38,7 @@ def home():
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Weekly study planner: optimize task hours across your available days using priority-aware scheduling." />
   <title>Study Planner</title>
   <style>
     :root {
@@ -341,7 +342,7 @@ def home():
           <button type="button" class="secondary" id="addTask">+ Add Task</button>
           <button type="button" id="run">Make My Plan</button>
           <button type="button" class="secondary" id="reset">Reset Defaults</button>
-          <span class="status" id="status">Ready</span>
+          <span class="status" id="status" role="status" aria-live="polite">Ready</span>
         </div>
       </section>
       <section class="card schedule-panel">
@@ -354,6 +355,13 @@ def home():
         <div id="planOutput" class="muted">Click Make My Plan to generate your optimized schedule.</div>
       </section>
     </div>
+    <footer class="card" style="margin-top:18px;padding:14px 16px;">
+      <p style="margin:0;font-size:13px;color:var(--text-muted);">
+        <strong style="color:var(--text-main);">Production demo:</strong>
+        <a href="https://aifinal-phi.vercel.app" style="color:var(--accent-strong);">aifinal-phi.vercel.app</a>
+        · <a href="https://github.com/Veloxinfestus/ai_final_project" style="color:var(--accent-strong);">Source on GitHub</a>
+      </p>
+    </footer>
   </main>
   <script>
     const starter = {{ starter | safe }};
@@ -682,23 +690,52 @@ def health():
 
 @app.post("/api/plan")
 def plan():
-    payload = request.get_json(silent=True) or {}
+    payload = request.get_json(silent=True)
+    if payload is None:
+        return jsonify({"error": "Request body must be valid JSON."}), 400
+    if not isinstance(payload, dict):
+        return jsonify({"error": "Request body must be a JSON object."}), 400
+
     week_of_raw = payload.get("week_of")
-    week_of = date.fromisoformat(week_of_raw) if week_of_raw else None
+    try:
+        week_of = date.fromisoformat(week_of_raw) if week_of_raw else None
+    except (TypeError, ValueError):
+        return jsonify({"error": "week_of must be an ISO date string (YYYY-MM-DD)."}), 400
+
     daily_hours = payload.get("daily_study_hours", {})
+    if daily_hours is None:
+        daily_hours = {}
+    if not isinstance(daily_hours, dict):
+        return jsonify({"error": "daily_study_hours must be an object."}), 400
+
     tasks_payload = payload.get("tasks", [])
+    if tasks_payload is None:
+        tasks_payload = []
+    if not isinstance(tasks_payload, list):
+        return jsonify({"error": "tasks must be an array."}), 400
 
-    tasks = [
-        Task(
-            name=item["name"],
-            hours_needed=float(item["hours_needed"]),
-            due=date.fromisoformat(item["due"]) if item.get("due") else None,
-            priority=float(item.get("priority", 1.0)),
-        )
-        for item in tasks_payload
-    ]
+    tasks: list[Task] = []
+    for idx, item in enumerate(tasks_payload):
+        if not isinstance(item, dict):
+            return jsonify({"error": f"tasks[{idx}] must be an object."}), 400
+        try:
+            name = item["name"]
+            hours_needed = float(item["hours_needed"])
+            due_raw = item.get("due")
+            due = date.fromisoformat(due_raw) if due_raw else None
+            priority = float(item.get("priority", 1.0))
+        except KeyError as exc:
+            missing = exc.args[0]
+            return jsonify({"error": f"tasks[{idx}] is missing required field '{missing}'."}), 400
+        except (TypeError, ValueError):
+            return jsonify({"error": f"tasks[{idx}] has invalid types or date format (use YYYY-MM-DD)."}), 400
+        tasks.append(Task(name=name, hours_needed=hours_needed, due=due, priority=priority))
 
-    result = build_plan(tasks=tasks, daily_hours=daily_hours, week_of=week_of)
+    try:
+        result = build_plan(tasks=tasks, daily_hours=daily_hours, week_of=week_of)
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+
     return jsonify(result)
 
 

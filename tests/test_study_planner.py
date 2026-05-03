@@ -98,6 +98,19 @@ class StudyPlannerTests(unittest.TestCase):
         bad_score = evaluate_objective(bad_plan, tasks, week_of)["objective_score"]
         self.assertGreater(good_score, bad_score)
 
+    def test_build_plan_empty_tasks_returns_zero_metrics(self):
+        daily_hours = {day: 2 for day in ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]}
+        result = build_plan(tasks=[], daily_hours=daily_hours, week_of=date(2026, 4, 27))
+        self.assertEqual(result["metrics"]["total_requested_hours"], 0.0)
+        self.assertEqual(result["metrics"]["allocation_rate"], 0.0)
+        self.assertEqual(result["unallocated_hours"], {})
+
+    def test_invalid_task_name_raises(self):
+        tasks = [Task(name="   ", hours_needed=2)]
+        daily_hours = {"Monday": 2, "Tuesday": 0, "Wednesday": 0, "Thursday": 0, "Friday": 0, "Saturday": 0, "Sunday": 0}
+        with self.assertRaises(ValueError):
+            build_plan(tasks=tasks, daily_hours=daily_hours, week_of=date(2026, 4, 27))
+
 
 if __name__ == "__main__":
     unittest.main()
