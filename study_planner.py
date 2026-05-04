@@ -8,6 +8,8 @@ from datetime import date, timedelta
 from pathlib import Path
 from typing import Dict, Iterable, List, Tuple
 
+from pulp import LpMaximize, LpProblem, LpStatusOptimal, LpVariable, PULP_CBC_CMD, lpSum, value
+
 WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
 DAY_INDEX = {day: idx for idx, day in enumerate(WEEKDAYS)}
 
@@ -17,17 +19,15 @@ class Task:
     name: str
     hours_needed: float
     due: date | None = None
-    priority: float = 1.0
 
 
 def start_of_week(any_day: date) -> date:
     return any_day - timedelta(days=any_day.weekday())
 
 
-def _task_sort_key(task: Task, week_start: date) -> Tuple[float, int, float]:
+def _task_sort_key(task: Task, week_start: date) -> Tuple[int, float]:
     due_offset = 999 if task.due is None else max(0, (task.due - week_start).days)
-    # Higher-priority tasks first, then urgent tasks, then larger tasks.
-    return (-task.priority, due_offset, -task.hours_needed)
+    return (due_offset, -task.hours_needed)
 
 
 def _normalize_daily_hours(daily_hours: Dict[str, float]) -> Dict[str, float]:
@@ -48,8 +48,6 @@ def _validate_tasks(tasks: List[Task]) -> None:
             raise ValueError("Task names must be non-empty.")
         if task.hours_needed <= 0:
             raise ValueError(f"Task '{task.name}' must have positive hours_needed.")
-        if task.priority <= 0:
-            raise ValueError(f"Task '{task.name}' must have positive priority.")
         if task.name in seen_names:
             raise ValueError(f"Duplicate task name detected: '{task.name}'.")
         seen_names.add(task.name)
@@ -69,8 +67,8 @@ def evaluate_objective(plan: Dict[str, Dict[str, float]], tasks: List[Task], wee
     gives smaller credit for total completion, and penalizes late allocation.
     """
     score = 0.0
-    weighted_on_time_completion = 0.0
-    weighted_total_completion = 0.0
+    on_time_completion = 0.0
+    total_completion = 0.0
     late_hours_penalty = 0.0
 
     for task in tasks:
@@ -87,19 +85,75 @@ def evaluate_objective(plan: Dict[str, Dict[str, float]], tasks: List[Task], wee
         completion_ratio = min(total_alloc / task.hours_needed, 1.0)
         late_hours = max(0.0, total_alloc - on_time_alloc)
 
-        weighted_on_time_completion += task.priority * on_time_ratio
-        weighted_total_completion += task.priority * completion_ratio
+        on_time_completion += on_time_ratio
+        total_completion += completion_ratio
         late_hours_penalty += late_hours
 
-        # Strongly prefer on-time completion for high-priority tasks.
-        score += task.priority * (5.0 * on_time_ratio + 2.0 * completion_ratio) - 1.5 * late_hours
+        score += 5.0 * on_time_ratio + 2.0 * completion_ratio - 1.5 * late_hours
 
     return {
         "objective_score": round(score, 4),
-        "weighted_on_time_completion": round(weighted_on_time_completion, 4),
-        "weighted_total_completion": round(weighted_total_completion, 4),
+        "on_time_completion": round(on_time_completion, 4),
+        "total_completion": round(total_completion, 4),
         "late_hours_penalty": round(late_hours_penalty, 4),
     }
+
+
+def _optimize_plan_milp(ordered_tasks: List[Task], normalized_daily_hours: Dict[str, float], week_start: date) -> Dict[str, Dict[str, float]]:
+    """
+    Mixed Integer Linear Programming optimizer using 0.5 hour blocks.
+
+    Decision variable x[t,d] is integer count of half-hour blocks allocated
+    from day d to task t.
+    """
+    step_size = 0.5
+    problem = LpProblem("study_planner_milp", LpMaximize)
+    task_names = [task.name for task in ordered_tasks]
+    due_by_task = {task.name: _due_index(task, week_start) for task in ordered_tasks}
+    blocks_needed = {task.name: int(round(task.hours_needed / step_size)) for task in ordered_tasks}
+    day_capacity = {day: int(round(normalized_daily_hours[day] / step_size)) for day in WEEKDAYS}
+
+    x = {
+        (task_name, day): LpVariable(f"x_{task_name}_{day}", lowBound=0, cat="Integer")
+        for task_name in task_names
+        for day in WEEKDAYS
+    }
+
+    for day in WEEKDAYS:
+        problem += lpSum(x[(task_name, day)] for task_name in task_names) <= day_capacity[day]
+
+    for task_name in task_names:
+        problem += lpSum(x[(task_name, day)] for day in WEEKDAYS) <= blocks_needed[task_name]
+
+    # Objective: maximize on-time work first, then any completion, and penalize late allocations.
+    objective_terms = []
+    for task_name in task_names:
+        due_idx = due_by_task[task_name]
+        for day in WEEKDAYS:
+            day_idx = DAY_INDEX[day]
+            if day_idx <= due_idx:
+                weight = 7.0
+            else:
+                weight = 0.5
+            objective_terms.append(weight * x[(task_name, day)])
+    problem += lpSum(objective_terms)
+
+    solver = PULP_CBC_CMD(msg=False)
+    problem.solve(solver)
+
+    if problem.status != LpStatusOptimal:
+        raise ValueError("Optimizer failed to find an optimal schedule.")
+
+    plan: Dict[str, Dict[str, float]] = {day: {} for day in WEEKDAYS}
+    for task_name in task_names:
+        for day in WEEKDAYS:
+            blocks = value(x[(task_name, day)])
+            if blocks is None or blocks <= 0:
+                continue
+            hours = round(float(blocks) * step_size, 2)
+            if hours > 0:
+                plan[day][task_name] = hours
+    return plan
 
 
 def build_plan(tasks: Iterable[Task], daily_hours: Dict[str, float], week_of: date | None = None):
@@ -108,49 +162,15 @@ def build_plan(tasks: Iterable[Task], daily_hours: Dict[str, float], week_of: da
     _validate_tasks(task_list)
     normalized_daily_hours = _normalize_daily_hours(daily_hours)
     ordered_tasks = sorted(task_list, key=lambda t: _task_sort_key(t, effective_week))
-    remaining = {task.name: float(task.hours_needed) for task in ordered_tasks}
-    plan: Dict[str, Dict[str, float]] = {day: {} for day in WEEKDAYS}
-    remaining_day = {day: float(hours) for day, hours in normalized_daily_hours.items()}
-    step_size = 0.5
-
-    while True:
-        if not any(hours > 0 for hours in remaining_day.values()):
-            break
-        if not any(hours > 0 for hours in remaining.values()):
-            break
-
-        base_score = evaluate_objective(plan, ordered_tasks, effective_week)["objective_score"]
-        best_move: Tuple[float, str, Task, float] | None = None
-
-        for day_name in WEEKDAYS:
-            available = remaining_day[day_name]
-            if available <= 0:
-                continue
-            for task in ordered_tasks:
-                if remaining[task.name] <= 0:
-                    continue
-                take = min(step_size, available, remaining[task.name])
-                if take <= 0:
-                    continue
-
-                candidate_plan = {d: allocations.copy() for d, allocations in plan.items()}
-                candidate_plan[day_name][task.name] = round(candidate_plan[day_name].get(task.name, 0.0) + take, 2)
-                candidate_score = evaluate_objective(candidate_plan, ordered_tasks, effective_week)["objective_score"]
-                gain = round(candidate_score - base_score, 6)
-
-                if best_move is None or gain > best_move[0]:
-                    best_move = (gain, day_name, task, take)
-
-        if best_move is None:
-            break
-        if best_move[0] <= 0:
-            # No move improves the objective further.
-            break
-
-        _, best_day, best_task, best_take = best_move
-        plan[best_day][best_task.name] = round(plan[best_day].get(best_task.name, 0.0) + best_take, 2)
-        remaining[best_task.name] = round(remaining[best_task.name] - best_take, 2)
-        remaining_day[best_day] = round(remaining_day[best_day] - best_take, 2)
+    plan = _optimize_plan_milp(ordered_tasks, normalized_daily_hours, effective_week)
+    allocated_by_task: Dict[str, float] = {task.name: 0.0 for task in ordered_tasks}
+    for day in WEEKDAYS:
+        for task_name, hours in plan[day].items():
+            allocated_by_task[task_name] = round(allocated_by_task.get(task_name, 0.0) + float(hours), 2)
+    remaining = {
+        task.name: round(task.hours_needed - allocated_by_task.get(task.name, 0.0), 2)
+        for task in ordered_tasks
+    }
 
     total_requested_hours = round(sum(task.hours_needed for task in ordered_tasks), 2)
     total_available_hours = round(sum(normalized_daily_hours.values()), 2)
@@ -169,8 +189,8 @@ def build_plan(tasks: Iterable[Task], daily_hours: Dict[str, float], week_of: da
             "total_allocated_hours": total_allocated,
             "allocation_rate": allocation_rate,
             "objective_score": objective_metrics["objective_score"],
-            "weighted_on_time_completion": objective_metrics["weighted_on_time_completion"],
-            "weighted_total_completion": objective_metrics["weighted_total_completion"],
+            "on_time_completion": objective_metrics["on_time_completion"],
+            "total_completion": objective_metrics["total_completion"],
             "late_hours_penalty": objective_metrics["late_hours_penalty"],
         },
     }
@@ -186,7 +206,6 @@ def load_config(config_path: str):
             name=item["name"],
             hours_needed=float(item["hours_needed"]),
             due=date.fromisoformat(item["due"]) if item.get("due") else None,
-            priority=float(item.get("priority", 1.0)),
         )
         for item in payload.get("tasks", [])
     ]

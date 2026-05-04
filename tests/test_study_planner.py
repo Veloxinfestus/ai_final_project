@@ -53,13 +53,13 @@ class StudyPlannerTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             build_plan(tasks=tasks, daily_hours=daily_hours, week_of=date(2026, 4, 27))
 
-    def test_higher_priority_tasks_are_allocated_first(self):
+    def test_earlier_due_tasks_are_allocated_first(self):
         tasks = [
-            Task(name="Reading", hours_needed=2, due=date(2026, 5, 2), priority=1),
-            Task(name="Midterm", hours_needed=2, due=date(2026, 5, 2), priority=4),
+            Task(name="Reading", hours_needed=2, due=date(2026, 5, 2)),
+            Task(name="Midterm", hours_needed=2, due=date(2026, 4, 28)),
         ]
         daily_hours = {
-            "Monday": 2,
+            "Monday": 1,
             "Tuesday": 0,
             "Wednesday": 0,
             "Thursday": 0,
@@ -69,11 +69,11 @@ class StudyPlannerTests(unittest.TestCase):
         }
 
         result = build_plan(tasks=tasks, daily_hours=daily_hours, week_of=date(2026, 4, 27))
-        self.assertEqual(result["plan"]["Monday"], {"Midterm": 2.0})
-        self.assertEqual(result["unallocated_hours"], {"Reading": 2.0})
+        self.assertEqual(result["plan"]["Monday"], {"Midterm": 1.0})
+        self.assertEqual(result["unallocated_hours"], {"Reading": 2.0, "Midterm": 1.0})
 
     def test_objective_function_ranks_on_time_plan_higher(self):
-        tasks = [Task(name="Exam", hours_needed=2, due=date(2026, 4, 28), priority=3)]
+        tasks = [Task(name="Exam", hours_needed=2, due=date(2026, 4, 28))]
         week_of = date(2026, 4, 27)
         good_plan = {
             "Monday": {"Exam": 2.0},

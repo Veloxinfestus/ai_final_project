@@ -10,9 +10,9 @@ Open the link in a browser to use the scheduler—no command line or local insta
 
 ## Project purpose
 
-This project is a Python web application that supports **student success** and **faculty-advising workflows** by turning coursework, due dates, daily availability, and priorities into a **weekly study schedule**.
+This project is a Python web application that supports **student success** and **faculty-advising workflows** by turning coursework, due dates, and daily availability into a **weekly study schedule**.
 
-The planner treats scheduling as a **constrained optimization** problem: it greedily allocates half-hour blocks to maximize an explicit **objective function** that rewards on-time, priority-weighted completion while penalizing late allocation—similar in spirit to heuristic search / iterative improvement used in operations research and ML-inspired scheduling, without requiring an external model runtime.
+The planner treats scheduling as a **constrained optimization** problem and solves it with a **Mixed Integer Linear Programming (MILP)** model. It assigns half-hour blocks across the week to maximize on-time completion and total completion while penalizing late allocation, giving an explicit and reproducible optimum for each input.
 
 ## Repository layout
 

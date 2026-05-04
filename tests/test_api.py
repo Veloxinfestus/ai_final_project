@@ -25,8 +25,8 @@ class ApiTests(unittest.TestCase):
                 "Sunday": 0,
             },
             "tasks": [
-                {"name": "Lab", "due": "2026-04-30", "hours_needed": 3, "priority": 1},
-                {"name": "Quiz Prep", "due": "2026-05-02", "hours_needed": 2, "priority": 2},
+                {"name": "Lab", "due": "2026-04-30", "hours_needed": 3},
+                {"name": "Quiz Prep", "due": "2026-05-02", "hours_needed": 2},
             ],
         }
         response = self.client.post("/api/plan", json=payload)
